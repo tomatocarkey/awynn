@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About &mdash; Awynn</title>
+<meta name="description" content="Awynn LLC was founded by Aaliyah, who studied information science at UNC Chapel Hill and worked in technology consulting.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="About &mdash; Awynn">
+<meta property="og:description" content="Who is building Awynn.">
+<meta property="og:type" content="profile">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231b2434'/><text x='16' y='22' font-family='Helvetica,Arial,sans-serif' font-size='17' font-weight='600' fill='%23f7f6f3' text-anchor='middle'>A</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <a class="wordmark" href="./">Awynn</a>
+      <nav class="nav"><span class="nav-current" aria-current="page">About</span></nav>
+    </header>
+
+    <main class="content content--doc">
+      <p class="eyebrow">Founder</p>
+
+      <h1 class="page-title">Aaliyah</h1>
+
+      <div class="prose">
+        <p>Aaliyah founded Awynn LLC. She studied information science at the
+        University of North Carolina at Chapel Hill and spent the early part of her
+        career in technology consulting.</p>
+
+        <p>The consulting work is where the company started. Moving between client
+        systems, she kept meeting the same situation: financial operations running on
+        legacy infrastructure, and organizations that knew it was costing them
+        without a clear sense of where to begin. To understand one corner of it
+        properly &mdash; hedge fund operations &mdash; she built a triage tool for
+        trade reconciliation breaks, working through how a trade support desk decides
+        what a break is, why it happened, and what is genuinely at risk.</p>
+
+        <p>The tool answered the small question and raised a larger one. What had
+        looked like a scatter of isolated frustrations turned out to be structural.
+        She began talking with people working in finance to test that read against
+        their day-to-day, and is now working alongside a student researcher to build
+        the domain depth the problem asks for.</p>
+
+        <p>Awynn LLC is early, and deliberately quiet about specifics. The problem is
+        not a quiet one.</p>
+      </div>
+
+      <p class="aside">Prototype:
+        <a href="https://github.com/tomatocarkey/trade-break-triage">github.com/tomatocarkey/trade-break-triage</a>
+      </p>
+
+      <p class="contact">
+        <a class="mail" data-user="adwynn03" data-domain="gmail.com">adwynn03 [at] gmail.com</a>
+      </p>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-legal">&copy; 2026 Awynn LLC</p>
+      <p class="footer-meta">Registered in the State of New York</p>
+    </footer>
+  </div>
+
+  <script>
+    // Assemble the address at runtime so plain-text harvesters find nothing to
+    // match. Without JS the anchor stays inert and shows a readable fallback.
+    (function () {
+      var el = document.querySelector('.mail');
+      if (!el) return;
+      var address = el.dataset.user + String.fromCharCode(64) + el.dataset.domain;
+      el.href = 'mail' + 'to:' + address;
+      el.textContent = address;
+    })();
+  </script>
+</body>
+</html>
