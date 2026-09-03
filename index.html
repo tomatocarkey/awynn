@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Awynn</title>
+<meta name="description" content="Awynn is an early-stage company building financial operations technology. Currently in stealth.">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Awynn">
+<meta property="og:description" content="Financial operations technology. In stealth.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231b2434'/><text x='16' y='22' font-family='Helvetica,Arial,sans-serif' font-size='17' font-weight='600' fill='%23f7f6f3' text-anchor='middle'>A</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <span class="wordmark">Awynn</span>
+    </header>
+
+    <main class="content">
+      <p class="status"><span class="status-dot" aria-hidden="true"></span>In stealth</p>
+
+      <h1 class="tagline">Financial operations technology. <span class="tagline-break">In stealth.</span></h1>
+
+      <p class="note">We&rsquo;re building something in financial operations. Not ready to share
+      details yet &mdash; but we&rsquo;re here, and we&rsquo;re real.</p>
+
+      <p class="contact-note">In discussion with prospective investors only.</p>
+
+      <p class="contact">
+        <a class="mail" data-user="adwynn03" data-domain="gmail.com">adwynn03 [at] gmail.com</a>
+      </p>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-legal">&copy; 2026 Awynn LLC</p>
+
+      <p class="footer-meta">Registered in the State of New York</p>
+    </footer>
+  </div>
+
+  <script>
+    // Assemble the address at runtime so plain-text harvesters find nothing to
+    // match. Without JS the anchor stays inert and shows a readable fallback.
+    (function () {
+      var el = document.querySelector('.mail');
+      if (!el) return;
+      var address = el.dataset.user + String.fromCharCode(64) + el.dataset.domain;
+      el.href = 'mail' + 'to:' + address;
+      el.textContent = address;
+    })();
+  </script>
+</body>
+</html>
