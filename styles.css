@@ -46,12 +46,16 @@ body {
 .page {
   min-height: 100vh;
   min-height: 100svh;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   padding: clamp(2rem, 5vw, 3.5rem) var(--gutter);
   max-width: 68rem;
   margin: 0 auto;
 }
+
+/* The middle band grows so the footer stays at the bottom on short pages. */
+.page > main,
+.page > .content { flex: 1 1 auto; }
 
 .masthead {
   display: flex;
@@ -527,6 +531,7 @@ body {
    ========================================================================== */
 
 :root {
+  --ground-blur:  rgba(247, 246, 243, 0.82);
   --panel:        #ffffff;
   --panel-rule:   rgba(22, 32, 58, 0.09);
   --panel-shadow: 0 1px 2px rgba(22, 32, 58, 0.04),
@@ -537,6 +542,7 @@ body {
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --ground-blur:  rgba(18, 22, 31, 0.86);
     --panel:        #1a1f2b;
     --panel-rule:   rgba(236, 234, 229, 0.10);
     --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.3),
@@ -561,7 +567,7 @@ body { background-image: var(--wash); background-repeat: no-repeat; }
 }
 
 .masthead.is-stuck {
-  background: color-mix(in srgb, var(--ground) 82%, transparent);
+  background: var(--ground-blur);
   border-bottom-color: var(--rule);
   backdrop-filter: saturate(180%) blur(14px);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
