@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overview &mdash; Awynn</title>
+<meta name="description" content="Awynn is a financial operations platform for fund trade reconciliation: agent-assisted triage with a human at every decision boundary.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Overview &mdash; Awynn">
+<meta property="og:description" content="Trade breaks don't need finding. They need deciding.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231b2434'/><text x='16' y='22' font-family='Helvetica,Arial,sans-serif' font-size='17' font-weight='600' fill='%23f7f6f3' text-anchor='middle'>A</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page page--wide">
+    <header class="masthead">
+      <a class="wordmark" href="./">Awynn</a>
+      <nav class="nav">
+        <span class="nav-current" aria-current="page">Overview</span>
+        <a href="about.html">About</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="section section--hero">
+        <p class="eyebrow">Financial operations platform</p>
+        <h1 class="display">Trade breaks don&rsquo;t need finding.<br class="br-lg">They need deciding.</h1>
+        <p class="lede">Finding breaks is a hundred lines of pandas. Deciding what each
+        one is, what it actually costs, and who should fix it first is a person&rsquo;s
+        entire morning. Awynn does that first pass &mdash; and shows its work.</p>
+      </section>
+
+      <section class="section">
+        <p class="section-label">The problem</p>
+        <div class="split">
+          <h2 class="heading">Detection is solved.<br class="br-lg">Triage is not.</h2>
+          <div class="prose">
+            <p>Every morning a fund compares its own record of yesterday&rsquo;s trades
+            against the confirmations its brokers send back. Where the two disagree,
+            that&rsquo;s a break. Spotting them is trivial.</p>
+
+            <p>What follows is not. Each break has to be classified, explained, priced
+            for the exposure genuinely at risk rather than the size of the discrepancy,
+            and routed to whoever can actually resolve it &mdash; all before the next
+            settlement cycle closes.</p>
+
+            <p>That work is high-volume, deadline-bound, and almost entirely judgment.
+            Today it is absorbed by hand, by the people who can least afford the hours.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="section-label">How it works</p>
+        <h2 class="heading">Three decisions, made in order.</h2>
+        <ol class="steps">
+          <li>
+            <span class="step-num">01</span>
+            <h3>Classify</h3>
+            <p>What kind of break is this &mdash; price, quantity, settlement date, fees,
+            a confirmation that never arrived? The category determines everything downstream.</p>
+          </li>
+          <li>
+            <span class="step-num">02</span>
+            <h3>Quantify</h3>
+            <p>How much money is genuinely at risk, as distinct from how large the
+            discrepancy looks. A big number that nets to nothing is not an emergency.</p>
+          </li>
+          <li>
+            <span class="step-num">03</span>
+            <h3>Route</h3>
+            <p>Who should fix it, and in what order, with the reasoning attached so the
+            person receiving it can check the work rather than redo it.</p>
+          </li>
+        </ol>
+        <p class="footnote">Every step is logged. Nothing executes on its own.</p>
+      </section>
+
+      <section class="section">
+        <p class="section-label">Supervision</p>
+        <div class="split">
+          <h2 class="heading">Built to be checked.</h2>
+          <div class="prose">
+            <p>The near-term equilibrium for AI in financial markets is not autonomy.
+            It is <em>bounded</em> autonomy &mdash; agents operating as supervised
+            co-pilots and constrained modules inside human decision processes, with
+            approval workflows, audit trails, and monitoring around
+            them.<sup class="cite">1</sup></p>
+
+            <p>That is a design constraint, not a limitation. Awynn is built so every
+            classification carries its reasoning, every judgment is attributable, and a
+            human sits at the decision boundary by default. In compliance terms, the goal
+            is that an audit is a query rather than an excavation.</p>
+
+            <p>It matches where regulators already are: in anti-money-laundering work,
+            agents are being deployed on first-level analyst duties precisely so people
+            can concentrate on higher-risk judgment &mdash; with the standing caveat that
+            human oversight remains critical.<sup class="cite">2</sup></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="section-label">Why now</p>
+        <h2 class="heading">The market has started repricing legacy infrastructure.</h2>
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-figure">&minus;6.39%</span>
+            <span class="stat-label">Legacy-service vendors</span>
+          </div>
+          <div class="stat">
+            <span class="stat-figure">&minus;2.61%</span>
+            <span class="stat-label">Legacy-heavy financial users</span>
+          </div>
+          <div class="stat">
+            <span class="stat-figure">~0%</span>
+            <span class="stat-label">Control portfolio</span>
+          </div>
+        </div>
+        <p class="footnote">Mean cumulative abnormal return over a three-day window around a
+        February 2026 agentic-capability event, across a 31-firm sample. The author
+        characterises the result as an exploratory illustration rather than a decisive
+        finding, and the reaction is not uniform &mdash; the sharpest repricing lands on the
+        firms whose revenue depends most directly on modernisation not
+        happening.<sup class="cite">1</sup></p>
+      </section>
+
+      <section class="section">
+        <p class="section-label">Who it&rsquo;s for</p>
+        <div class="split">
+          <h2 class="heading">Funds and administrators running daily reconciliation.</h2>
+          <div class="prose">
+            <p>Operations teams small enough that the morning break queue lands on a
+            handful of people, and large enough that the queue is never empty.</p>
+
+            <p>Awynn is designed to sit alongside the existing stack, read-only, rather
+            than replace it. Integration with custodian, prime broker, and OMS feeds is
+            real work, and we would rather do that work with you than pretend it
+            isn&rsquo;t there.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--form">
+        <p class="section-label">Get in touch</p>
+        <h2 class="heading">Tell us what you&rsquo;re running into.</h2>
+        <p class="lede lede--sm">If you work in fund operations, invest in the category, or
+        want to talk about the problem, leave a note and Aaliyah will reply personally.</p>
+
+        <form class="form" action="https://formspree.io/f/xeaqzzyv" method="POST">
+          <div class="field-row">
+            <p class="field">
+              <label for="name">Name</label>
+              <input id="name" name="name" type="text" autocomplete="name" required>
+            </p>
+            <p class="field">
+              <label for="email">Work email</label>
+              <input id="email" name="email" type="email" autocomplete="email" required>
+            </p>
+          </div>
+          <div class="field-row">
+            <p class="field">
+              <label for="firm">Firm</label>
+              <input id="firm" name="firm" type="text" autocomplete="organization">
+            </p>
+            <p class="field">
+              <label for="role">Role</label>
+              <input id="role" name="role" type="text" autocomplete="organization-title">
+            </p>
+          </div>
+          <p class="field">
+            <label for="message">What prompted you to reach out?</label>
+            <textarea id="message" name="message" rows="4"></textarea>
+          </p>
+
+          <!-- Spam trap: real people never fill this in. -->
+          <p class="gotcha" aria-hidden="true">
+            <label for="company-website">Leave this field empty</label>
+            <input id="company-website" name="_gotcha" type="text" tabindex="-1" autocomplete="off">
+          </p>
+
+          <button class="button" type="submit">Send</button>
+          <p class="form-note">Used only to reply to you. Nothing else.</p>
+        </form>
+      </section>
+
+      <section class="section section--notes">
+        <p class="section-label">Where we are</p>
+        <p class="prose-single">Awynn LLC is early: a working prototype, ongoing
+        conversations with practitioners, and a search for design partners. It is not a
+        deployed product, and the figures above describe the market we are building into,
+        not results we are claiming.</p>
+
+        <ol class="refs">
+          <li id="ref1">Gong, H. (2026). <cite>AI Agents in Financial Markets: Architecture,
+          Applications, and Systemic Implications.</cite> UCL Institute of Finance &amp;
+          Technology.</li>
+          <li id="ref2">Rizinski, M. &amp; Trajanov, D. (2025). <cite>AI Agents in Finance and
+          Fintech: A Scientific Review of Agent-Based Systems, Applications, and Future
+          Horizons.</cite> Computers, Materials &amp; Continua.</li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-legal">&copy; 2026 Awynn LLC</p>
+      <p class="footer-meta">Registered in the State of New York</p>
+    </footer>
+  </div>
+</body>
+</html>
