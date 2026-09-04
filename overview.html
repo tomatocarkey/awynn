@@ -24,11 +24,55 @@
 
     <main>
       <section class="section section--hero">
-        <p class="eyebrow">Financial operations platform</p>
-        <h1 class="display">Trade breaks don&rsquo;t need finding.<br class="br-lg">They need deciding.</h1>
-        <p class="lede">Finding breaks is a hundred lines of pandas. Deciding what each
-        one is, what it actually costs, and who should fix it first is a person&rsquo;s
-        entire morning. Awynn does that first pass &mdash; and shows its work.</p>
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Financial operations platform</p>
+            <h1 class="display">Trade breaks don&rsquo;t need finding.<br class="br-lg">They need deciding.</h1>
+            <p class="lede">Finding breaks is a hundred lines of pandas. Deciding what each
+            one is, what it actually costs, and who should fix it first is a person&rsquo;s
+            entire morning. Awynn does that first pass &mdash; and shows its work.</p>
+          </div>
+
+          <figure class="panel" aria-labelledby="panel-cap">
+            <div class="panel-bar">
+              <span class="panel-title">Break queue</span>
+              <span class="panel-meta">04 Sep &middot; 3 open</span>
+            </div>
+            <ul class="queue">
+              <li class="row">
+                <div class="row-main">
+                  <span class="row-id">BRK&#8209;1042</span>
+                  <span class="row-desc">AAPL &middot; confirm qty 5,000 vs booked 500</span>
+                </div>
+                <div class="row-meta">
+                  <span class="chip chip--high">Quantity</span>
+                  <span class="row-risk">$612k at risk</span>
+                </div>
+              </li>
+              <li class="row">
+                <div class="row-main">
+                  <span class="row-id">BRK&#8209;1043</span>
+                  <span class="row-desc">MSFT &middot; settles T+1, booked T+2</span>
+                </div>
+                <div class="row-meta">
+                  <span class="chip">Settlement</span>
+                  <span class="row-risk">Nets to zero</span>
+                </div>
+              </li>
+              <li class="row">
+                <div class="row-main">
+                  <span class="row-id">BRK&#8209;1044</span>
+                  <span class="row-desc">TSLA &middot; commission delta on partial fill</span>
+                </div>
+                <div class="row-meta">
+                  <span class="chip">Fees</span>
+                  <span class="row-risk">$1.2k at risk</span>
+                </div>
+              </li>
+            </ul>
+            <figcaption class="panel-cap" id="panel-cap">Illustrative sample &mdash; not live data.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="section">
@@ -208,5 +252,60 @@
       <p class="footer-meta">Registered in the State of New York</p>
     </footer>
   </div>
+
+  <script>
+    (function () {
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Masthead gains a hairline and blur once the page leaves the top.
+      var head = document.querySelector('.masthead');
+      var onScroll = function () {
+        head.classList.toggle('is-stuck', window.scrollY > 8);
+      };
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      if (reduced || !('IntersectionObserver' in window)) return;
+
+      var targets = [].slice.call(
+        document.querySelectorAll('.section > *, .hero-grid > *')
+      );
+
+      var reveal = function (el) {
+        el.classList.add('is-in');
+      };
+
+      // Failsafe: whatever happens with the observer, nothing stays hidden.
+      // Anything already on screen reveals on the next frame, and everything
+      // else is force-revealed after a second regardless.
+      var releaseAll = function () { targets.forEach(reveal); };
+      var timer = setTimeout(releaseAll, 1000);
+
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          reveal(e.target);
+          io.unobserve(e.target);
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+
+      targets.forEach(function (el, i) {
+        el.classList.add('will-reveal');
+        el.style.setProperty('--reveal-delay', (i % 4) * 60 + 'ms');
+        io.observe(el);
+      });
+
+      requestAnimationFrame(function () {
+        targets.forEach(function (el) {
+          if (el.getBoundingClientRect().top < window.innerHeight) reveal(el);
+        });
+      });
+
+      window.addEventListener('load', function () {
+        clearTimeout(timer);
+        setTimeout(releaseAll, 400);
+      });
+    })();
+  </script>
 </body>
 </html>
