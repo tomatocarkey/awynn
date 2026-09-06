@@ -377,6 +377,37 @@ body {
   text-wrap: pretty;
 }
 
+/* ---------- prototype link ---------- */
+
+.cta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin: clamp(1.25rem, 2.5vw, 1.75rem) 0 0;
+}
+
+.cta {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 160ms ease;
+}
+
+.cta:hover { border-bottom-color: var(--accent); }
+.cta span { display: inline-block; transition: transform 160ms ease; }
+.cta:hover span { transform: translateX(2px); }
+
+.cta-note {
+  max-width: 46ch;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ink-faint);
+  text-wrap: pretty;
+}
+
 .cite {
   font-size: 0.7em;
   font-weight: 600;
