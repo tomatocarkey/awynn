@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Overview &mdash; Awynn</title>
-<meta name="description" content="Awynn is a financial operations platform for fund trade reconciliation: agent-assisted triage with a human at every decision boundary.">
+<meta name="description" content="Evidence-first exception resolution for investment operations. Investigate trade breaks across internal records, prime brokers, custodians, and administrators &mdash; with authorized people approving every decision.">
 <meta name="robots" content="noindex, nofollow">
-<meta property="og:title" content="Overview &mdash; Awynn">
-<meta property="og:description" content="Trade breaks don't need finding. They need deciding.">
+<meta property="og:title" content="Awynn &mdash; Resolve trade breaks faster, without giving AI the final say">
+<meta property="og:description" content="Evidence-first exception resolution for investment operations.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231b2434'/><text x='16' y='22' font-family='Helvetica,Arial,sans-serif' font-size='17' font-weight='600' fill='%23f7f6f3' text-anchor='middle'>A</text></svg>">
 <link rel="stylesheet" href="styles.css">
@@ -23,174 +23,287 @@
     </header>
 
     <main>
+      <!-- ============================ 1. Hero ============================ -->
       <section class="section section--hero">
         <div class="hero-grid">
           <div class="hero-copy">
-            <p class="eyebrow">Financial operations platform</p>
-            <h1 class="display">Trade breaks don&rsquo;t need finding.<br class="br-lg">They need deciding.</h1>
-            <p class="lede">Finding breaks is a hundred lines of pandas. Deciding what each
-            one is, what it actually costs, and who should fix it first is a person&rsquo;s
-            entire morning. Awynn does that first pass &mdash; and shows its work.</p>
+            <p class="eyebrow">Exception resolution for investment operations</p>
+
+            <h1 class="display">Resolve trade breaks faster&mdash;without giving AI the final say.</h1>
+
+            <p class="lede">Investigate reconciliation exceptions across internal records,
+            prime brokers, custodians, and fund administrators. Assemble the evidence,
+            recommend the next controlled step, and keep authorized people in control of
+            every decision.</p>
+
+            <p class="support">For investment-operations teams that have outgrown
+            spreadsheets but do not need a multi-year enterprise-platform replacement.</p>
+
+            <div class="btn-row">
+              <a class="btn btn--primary" href="#request">Request a workflow review</a>
+              <a class="btn btn--ghost" href="#example">See how a break is investigated</a>
+            </div>
+
+            <p class="promise">In a 30-minute working session, we map one break workflow,
+            identify the evidence analysts currently chase, and define what can safely be
+            automated versus what must remain under human approval.</p>
+
+            <p class="trust-line"><span class="lock" aria-hidden="true"></span>No autonomous
+            booking, settlement, or record changes.</p>
           </div>
 
-          <figure class="panel" aria-labelledby="panel-cap">
+          <figure class="panel" aria-labelledby="hero-cap">
             <div class="panel-bar">
-              <span class="panel-title">Break queue</span>
-              <span class="panel-meta">04 Sep &middot; 3 open</span>
+              <span class="panel-title">Case AWY&#8209;1042 &middot; Quantity break</span>
+              <span class="state state--pending">Awaiting approval</span>
             </div>
+
             <ul class="queue">
               <li class="row">
                 <div class="row-main">
-                  <span class="row-id">BRK&#8209;1042</span>
-                  <span class="row-desc">AAPL &middot; confirm qty 5,000 vs booked 500</span>
+                  <span class="row-id">Internal system</span>
+                  <span class="row-desc">100,000 shares executed</span>
                 </div>
-                <div class="row-meta">
-                  <span class="chip chip--high">Quantity</span>
-                  <span class="row-risk">$612k at risk</span>
-                </div>
+                <span class="chip">Source</span>
               </li>
               <li class="row">
                 <div class="row-main">
-                  <span class="row-id">BRK&#8209;1043</span>
-                  <span class="row-desc">MSFT &middot; settles T+1, booked T+2</span>
+                  <span class="row-id">Broker file</span>
+                  <span class="row-desc">80,000 shares confirmed</span>
                 </div>
-                <div class="row-meta">
-                  <span class="chip">Settlement</span>
-                  <span class="row-risk">Nets to zero</span>
-                </div>
+                <span class="chip chip--high">&Delta; 20,000</span>
               </li>
               <li class="row">
                 <div class="row-main">
-                  <span class="row-id">BRK&#8209;1044</span>
-                  <span class="row-desc">TSLA &middot; commission delta on partial fill</span>
+                  <span class="row-id">Allocation record</span>
+                  <span class="row-desc">20,000 shares booked separately</span>
                 </div>
-                <div class="row-meta">
-                  <span class="chip">Fees</span>
-                  <span class="row-risk">$1.2k at risk</span>
-                </div>
+                <span class="chip">Evidence</span>
               </li>
             </ul>
-            <figcaption class="panel-cap" id="panel-cap">Illustrative sample &mdash; not live data.</figcaption>
+
+            <div class="panel-rec">
+              <p class="rec-label">Likely root cause</p>
+              <p class="rec-body">Partial fill booked as a separate allocation.</p>
+              <p class="rec-label">Recommended next step</p>
+              <p class="rec-body">Confirm allocation mapping. No booking change proposed.</p>
+            </div>
+
+            <div class="panel-approve">
+              <span class="pseudo-btn pseudo-btn--primary">Approve</span>
+              <span class="pseudo-btn">Modify</span>
+              <span class="pseudo-btn">Reject</span>
+              <span class="approve-note">Operations analyst</span>
+            </div>
+
+            <figcaption class="panel-cap" id="hero-cap">Illustrative interface &mdash; not live data.</figcaption>
           </figure>
         </div>
       </section>
 
+      <!-- ========================== 2. Problem =========================== -->
       <section class="section">
         <p class="section-label">The problem</p>
         <div class="split">
-          <h2 class="heading">Detection is solved.<br class="br-lg">Triage is not.</h2>
+          <h2 class="heading">Matching is not the hard part. Investigating breaks is.</h2>
           <div class="prose">
-            <p>Every morning a fund compares its own record of yesterday&rsquo;s trades
-            against the confirmations its brokers send back. Where the two disagree,
-            that&rsquo;s a break. Spotting them is trivial.</p>
-
-            <p>What follows is not. Each break has to be classified, explained, priced
-            for the exposure genuinely at risk rather than the size of the discrepancy,
-            and routed to whoever can actually resolve it &mdash; all before the next
-            settlement cycle closes.</p>
-
-            <p>That work is high-volume, deadline-bound, and almost entirely judgment.
-            Today it is absorbed by hand, by the people who can least afford the hours.</p>
+            <p>Detection tells you a record disagrees. It does not tell you why, what to do
+            about it, or who should do it. That work still lands on people, and it is where
+            the hours go:</p>
+            <ul class="bullets">
+              <li>Switching among internal systems, broker and custodian portals, files,
+              emails, and spreadsheets</li>
+              <li>Finding the information needed to explain a discrepancy</li>
+              <li>Determining the correct next step</li>
+              <li>Routing exceptions to the right person</li>
+              <li>Documenting why a resolution was approved</li>
+            </ul>
           </div>
         </div>
       </section>
 
+      <!-- ======================== 3. How it works ======================== -->
       <section class="section">
         <p class="section-label">How it works</p>
-        <h2 class="heading">Three decisions, made in order.</h2>
-        <ol class="steps">
+        <h2 class="heading">From break to approved resolution</h2>
+
+        <ol class="process">
           <li>
             <span class="step-num">01</span>
-            <h3>Classify</h3>
-            <p>What kind of break is this &mdash; price, quantity, settlement date, fees,
-            a confirmation that never arrived? The category determines everything downstream.</p>
+            <h3>Detect</h3>
+            <p>Compare records and identify exceptions.</p>
           </li>
           <li>
             <span class="step-num">02</span>
-            <h3>Quantify</h3>
-            <p>How much money is genuinely at risk, as distinct from how large the
-            discrepancy looks. A big number that nets to nothing is not an emergency.</p>
+            <h3>Investigate</h3>
+            <p>Gather the relevant records, files, and evidence.</p>
           </li>
           <li>
             <span class="step-num">03</span>
-            <h3>Route</h3>
-            <p>Who should fix it, and in what order, with the reasoning attached so the
-            person receiving it can check the work rather than redo it.</p>
+            <h3>Explain</h3>
+            <p>Identify likely root cause in plain language.</p>
+          </li>
+          <li>
+            <span class="step-num">04</span>
+            <h3>Recommend</h3>
+            <p>Suggest the next controlled action.</p>
+          </li>
+          <li>
+            <span class="step-num">05</span>
+            <h3>Approve</h3>
+            <p>Authorized team member accepts, edits, or rejects.</p>
+          </li>
+          <li>
+            <span class="step-num">06</span>
+            <h3>Document</h3>
+            <p>Preserve the full evidence and decision history.</p>
           </li>
         </ol>
-        <p class="footnote">Every step is logged. Nothing executes on its own.</p>
       </section>
 
+      <!-- ======================== 4. Worked example ====================== -->
+      <section class="section" id="example">
+        <p class="section-label">Worked example</p>
+        <h2 class="heading">Example: resolving a quantity break</h2>
+        <p class="lede lede--sm">A fund&rsquo;s internal system shows 100,000 shares executed.
+        A broker file shows 80,000. An updated allocation record shows the remaining 20,000
+        shares were separately booked.</p>
+
+        <ol class="flow">
+          <li class="flow-step">
+            <span class="flow-tag">Break</span>
+            <h3>The discrepancy</h3>
+            <dl class="pairs">
+              <div><dt>Internal system</dt><dd>100,000</dd></div>
+              <div><dt>Broker file</dt><dd>80,000</dd></div>
+              <div class="pair-delta"><dt>Difference</dt><dd>20,000 shares</dd></div>
+            </dl>
+          </li>
+
+          <li class="flow-step">
+            <span class="flow-tag">Evidence</span>
+            <h3>What was retrieved</h3>
+            <ul class="evidence">
+              <li>Allocation record showing 20,000 shares booked separately</li>
+              <li>Execution report indicating a partial fill</li>
+              <li>Prior cases with the same allocation pattern</li>
+            </ul>
+          </li>
+
+          <li class="flow-step">
+            <span class="flow-tag">Recommendation</span>
+            <h3>What the platform proposes</h3>
+            <p>Likely a partial fill booked as a separate allocation. Recommended next step:
+            confirm the allocation mapping and close the exception. No booking change is
+            proposed.</p>
+          </li>
+
+          <li class="flow-step flow-step--human">
+            <span class="flow-tag flow-tag--human">Human approval</span>
+            <h3>What only a person can do</h3>
+            <p>An operations analyst reviews the evidence and approves, edits, or rejects the
+            recommendation. The case, its evidence, and the decision are recorded.</p>
+            <p class="flow-emphasis">Nothing changes automatically.</p>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ====================== 5. Human control ========================= -->
       <section class="section">
-        <p class="section-label">Supervision</p>
-        <div class="split">
-          <h2 class="heading">Built to be checked.</h2>
-          <div class="prose">
-            <p>The near-term equilibrium for AI in financial markets is not autonomy.
-            It is <em>bounded</em> autonomy &mdash; agents operating as supervised
-            co-pilots and constrained modules inside human decision processes, with
-            approval workflows, audit trails, and monitoring around
-            them.<sup class="cite">1</sup></p>
+        <p class="section-label">Human control</p>
+        <h2 class="heading">AI investigates. Your team decides.</h2>
 
-            <p>That is a design constraint, not a limitation. Awynn is built so every
-            classification carries its reasoning, every judgment is attributable, and a
-            human sits at the decision boundary by default. In compliance terms, the goal
-            is that an audit is a query rather than an excavation.</p>
+        <div class="compare">
+          <div class="compare-col">
+            <h3 class="compare-head">The platform can</h3>
+            <ul class="compare-list compare-list--can">
+              <li>Compare internal and external records</li>
+              <li>Identify likely break types</li>
+              <li>Gather source records and supporting evidence</li>
+              <li>Summarize probable root causes</li>
+              <li>Recommend next steps</li>
+              <li>Route cases based on policy</li>
+              <li>Create case histories and audit trails</li>
+            </ul>
+          </div>
 
-            <p>It matches where regulators already are: in anti-money-laundering work,
-            agents are being deployed on first-level analyst duties precisely so people
-            can concentrate on higher-risk judgment &mdash; with the standing caveat that
-            human oversight remains critical.<sup class="cite">2</sup></p>
+          <div class="compare-col compare-col--gated">
+            <h3 class="compare-head">Only authorized people can</h3>
+            <ul class="compare-list compare-list--cannot">
+              <li>Amend bookings</li>
+              <li>Change records, positions, cash, NAVs, or accounting entries</li>
+              <li>Send counterparty instructions</li>
+              <li>Release, settle, or cancel transactions</li>
+              <li>Close material exceptions</li>
+              <li>Override policies or permissions</li>
+            </ul>
           </div>
         </div>
       </section>
 
-      <section class="section">
-        <p class="section-label">Why now</p>
-        <h2 class="heading">The market has started repricing legacy infrastructure.</h2>
-        <div class="stats">
-          <div class="stat">
-            <span class="stat-figure">&minus;6.39%</span>
-            <span class="stat-label">Legacy-service vendors</span>
-          </div>
-          <div class="stat">
-            <span class="stat-figure">&minus;2.61%</span>
-            <span class="stat-label">Legacy-heavy financial users</span>
-          </div>
-          <div class="stat">
-            <span class="stat-figure">~0%</span>
-            <span class="stat-label">Control portfolio</span>
-          </div>
-        </div>
-        <p class="footnote">Mean cumulative abnormal return over a three-day window around a
-        February 2026 agentic-capability event, across a 31-firm sample. The author
-        characterises the result as an exploratory illustration rather than a decisive
-        finding, and the reaction is not uniform &mdash; the sharpest repricing lands on the
-        firms whose revenue depends most directly on modernisation not
-        happening.<sup class="cite">1</sup></p>
-      </section>
-
+      <!-- ========================= 6. Who it's for ======================= -->
       <section class="section">
         <p class="section-label">Who it&rsquo;s for</p>
-        <div class="split">
-          <h2 class="heading">Funds and administrators running daily reconciliation.</h2>
-          <div class="prose">
-            <p>Operations teams small enough that the morning break queue lands on a
-            handful of people, and large enough that the queue is never empty.</p>
+        <h2 class="heading">Built for complex operations teams&mdash;not generic finance workflows.</h2>
 
-            <p>Awynn is designed to sit alongside the existing stack, read-only, rather
-            than replace it. Integration with custodian, prime broker, and OMS feeds is
-            real work, and we would rather do that work with you than pretend it
-            isn&rsquo;t there.</p>
+        <ul class="segments">
+          <li>Hedge funds</li>
+          <li>Fund administrators</li>
+          <li>Prop trading firms</li>
+          <li>Specialist asset managers</li>
+          <li>Multi-family offices</li>
+        </ul>
+
+        <p class="footnote">Best for teams managing multiple counterparties, systems, asset
+        classes, and exception workflows.</p>
+      </section>
+
+      <!-- ======================= 7. Trust / controls ===================== -->
+      <section class="section">
+        <p class="section-label">Controls</p>
+        <h2 class="heading">Designed for controlled operations</h2>
+
+        <ul class="cards">
+          <li><h3>Human approval gates</h3><p>Material outcomes wait on an authorized decision.</p></li>
+          <li><h3>Evidence attached to each recommendation</h3><p>Every proposal carries the records it rests on.</p></li>
+          <li><h3>Role-based permissions</h3><p>Who can see, act, and approve is defined per role.</p></li>
+          <li><h3>Configurable thresholds and escalation policies</h3><p>Your firm sets what escalates and when.</p></li>
+          <li><h3>Source-level audit history</h3><p>Trace a conclusion back to the record it came from.</p></li>
+          <li><h3>Logged recommendations and decisions</h3><p>What was proposed, by whom it was decided, and why.</p></li>
+          <li><h3>No autonomous changes to books and records</h3><p>The platform proposes; it does not post.</p></li>
+        </ul>
+
+        <p class="footnote">Designed around durable model-risk and operational-control
+        principles: governance, documentation, validation, monitoring, accountability, and
+        human oversight.</p>
+      </section>
+
+      <!-- ====================== 8. How it is designed ==================== -->
+      <section class="section">
+        <p class="section-label">How it is designed</p>
+        <div class="split">
+          <h2 class="heading">AI proposes. Deterministic controls enforce policy.</h2>
+          <div class="prose">
+            <p>The reasoning layer and the control layer are deliberately separate. Model
+            output is a recommendation, never an action. What is permitted, what escalates,
+            and what requires approval are enforced by deterministic rules that sit outside
+            the model.</p>
+            <ol class="chain">
+              <li>AI classification and evidence gathering</li>
+              <li>Deterministic rules and confidence thresholds</li>
+              <li>Authorized human approval</li>
+              <li>Logged final outcome</li>
+            </ol>
           </div>
         </div>
       </section>
 
-      <section class="section section--form">
-        <p class="section-label">Get in touch</p>
-        <h2 class="heading">Tell us what you&rsquo;re running into.</h2>
-        <p class="lede lede--sm">If you work in fund operations, invest in the category, or
-        want to talk about the problem, leave a note and Aaliyah will reply personally.</p>
+      <!-- ========================= 9. Final CTA ========================== -->
+      <section class="section section--form" id="request">
+        <p class="section-label">Get started</p>
+        <h2 class="heading">Start with one high-friction break workflow.</h2>
+        <p class="lede lede--sm">Map the work your team does today, identify what can safely be
+        accelerated, and keep final decisions with authorized operators.</p>
 
         <form class="form" action="https://formspree.io/f/xeaqzzyv" method="POST">
           <div class="field-row">
@@ -214,7 +327,7 @@
             </p>
           </div>
           <p class="field">
-            <label for="message">What prompted you to reach out?</label>
+            <label for="message">Which break workflow causes the most friction today?</label>
             <textarea id="message" name="message" rows="4"></textarea>
           </p>
 
@@ -224,26 +337,15 @@
             <input id="company-website" name="_gotcha" type="text" tabindex="-1" autocomplete="off">
           </p>
 
-          <button class="button" type="submit">Send</button>
-          <p class="form-note">Used only to reply to you. Nothing else.</p>
+          <button class="btn btn--primary" type="submit">Request a workflow review</button>
+          <p class="form-note">A 30-minute working session. Used only to reply to you.</p>
         </form>
       </section>
 
       <section class="section section--notes">
-        <p class="section-label">Where we are</p>
-        <p class="prose-single">Awynn LLC is early: a working prototype, ongoing
-        conversations with practitioners, and a search for design partners. It is not a
-        deployed product, and the figures above describe the market we are building into,
-        not results we are claiming.</p>
-
-        <ol class="refs">
-          <li id="ref1">Gong, H. (2026). <cite>AI Agents in Financial Markets: Architecture,
-          Applications, and Systemic Implications.</cite> UCL Institute of Finance &amp;
-          Technology.</li>
-          <li id="ref2">Rizinski, M. &amp; Trajanov, D. (2025). <cite>AI Agents in Finance and
-          Fintech: A Scientific Review of Agent-Based Systems, Applications, and Future
-          Horizons.</cite> Computers, Materials &amp; Continua.</li>
-        </ol>
+        <p class="prose-single">Awynn LLC is early: a working prototype, ongoing conversations
+        with practitioners, and a search for design partners. Interfaces shown on this page are
+        illustrative.</p>
       </section>
     </main>
 
@@ -257,7 +359,6 @@
     (function () {
       var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      // Masthead gains a hairline and blur once the page leaves the top.
       var head = document.querySelector('.masthead');
       var onScroll = function () {
         head.classList.toggle('is-stuck', window.scrollY > 8);
@@ -271,13 +372,9 @@
         document.querySelectorAll('.section > *, .hero-grid > *')
       );
 
-      var reveal = function (el) {
-        el.classList.add('is-in');
-      };
+      var reveal = function (el) { el.classList.add('is-in'); };
 
       // Failsafe: whatever happens with the observer, nothing stays hidden.
-      // Anything already on screen reveals on the next frame, and everything
-      // else is force-revealed after a second regardless.
       var releaseAll = function () { targets.forEach(reveal); };
       var timer = setTimeout(releaseAll, 1000);
 

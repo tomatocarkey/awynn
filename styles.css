@@ -5,7 +5,7 @@
   --ground:        #f7f6f3;
   --ink:           #16203a;
   --ink-muted:     #56607a;
-  --ink-faint:     #8b93a6;
+  --ink-faint:     #626b7d;
   --rule:          rgba(22, 32, 58, 0.12);
   --accent:        #3d6b63;
 
@@ -20,7 +20,7 @@
     --ground:    #12161f;
     --ink:       #eceae5;
     --ink-muted: #9aa3b5;
-    --ink-faint: #6a7285;
+    --ink-faint: #838b9e;
     --rule:      rgba(236, 234, 229, 0.14);
     --accent:    #7fb3a7;
   }
@@ -325,8 +325,7 @@ body {
 
 @media (min-width: 52rem) {
   .split { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
-  .section .heading + .steps,
-  .section .heading + .stats { margin-top: clamp(2.5rem, 5vw, 3.5rem); }
+  .section .heading + .steps { margin-top: clamp(2.5rem, 5vw, 3.5rem); }
 }
 
 .section .section-label + .heading { margin-bottom: clamp(2.5rem, 5vw, 3.5rem); }
@@ -367,32 +366,6 @@ body {
   max-width: 34ch;
   color: var(--ink-muted);
   text-wrap: pretty;
-}
-
-.stats {
-  display: grid;
-  gap: clamp(1.75rem, 4vw, 3rem);
-  margin: clamp(2.5rem, 5vw, 3.5rem) 0 clamp(1.75rem, 4vw, 2.5rem);
-}
-
-@media (min-width: 40rem) {
-  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-
-.stat-figure {
-  display: block;
-  font-size: clamp(2rem, 5.5vw, 3.25rem);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-label {
-  display: block;
-  margin-top: 0.65rem;
-  font-size: 0.875rem;
-  color: var(--ink-muted);
 }
 
 .footnote {
@@ -477,23 +450,6 @@ body {
   height: 1px;
   overflow: hidden;
 }
-
-.button {
-  margin-top: 0.5rem;
-  padding: 0.75rem 1.75rem;
-  font: inherit;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--ground);
-  background: var(--ink);
-  border: 1px solid var(--ink);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: opacity 160ms ease, transform 160ms ease;
-}
-
-.button:hover { opacity: 0.85; }
-.button:active { transform: scale(0.985); }
 
 .form-note {
   margin: 1rem 0 0;
@@ -718,3 +674,447 @@ body { background-image: var(--wash); background-repeat: no-repeat; }
 @media (prefers-reduced-motion: reduce) {
   .will-reveal { opacity: 1; transform: none; transition: none; }
 }
+
+/* ==========================================================================
+   Landing page components
+   ========================================================================== */
+
+/* Anchor targets must clear the sticky masthead. */
+[id] { scroll-margin-top: 5rem; }
+
+.support {
+  margin: clamp(1.25rem, 3vw, 1.75rem) 0 0;
+  max-width: 48ch;
+  font-size: 0.9375rem;
+  color: var(--ink-faint);
+  text-wrap: pretty;
+}
+
+/* ---------- buttons ---------- */
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: clamp(1.75rem, 4vw, 2.25rem);
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.8rem 1.6rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: opacity 160ms ease, transform 160ms ease,
+              background-color 160ms ease, border-color 160ms ease;
+}
+
+.btn--primary {
+  color: var(--ground);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.btn--primary:hover { opacity: 0.88; }
+
+.btn--ghost {
+  color: var(--ink);
+  background: transparent;
+  border-color: var(--rule);
+}
+
+.btn--ghost:hover { border-color: var(--ink-faint); }
+
+.btn:active { transform: scale(0.985); }
+
+.promise {
+  margin: clamp(1.5rem, 3vw, 2rem) 0 0;
+  max-width: 54ch;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--ink-muted);
+  text-wrap: pretty;
+}
+
+.trust-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: clamp(1.5rem, 3vw, 1.75rem) 0 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.lock {
+  margin-top: 0.45em;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--accent);
+  flex: none;
+}
+
+/* ---------- hero panel additions ---------- */
+
+.state {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.state--pending {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.panel-rec {
+  padding: 1rem 1.1rem;
+  border-top: 1px solid var(--panel-rule);
+}
+
+.rec-label {
+  margin: 0 0 0.2rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.rec-body {
+  margin: 0 0 0.85rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.rec-body:last-child { margin-bottom: 0; }
+
+.panel-approve {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.1rem;
+  border-top: 1px solid var(--panel-rule);
+}
+
+/* Static depictions of controls, not real ones — spans, never buttons. */
+.pseudo-btn {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--panel-rule);
+  border-radius: 999px;
+  color: var(--ink-muted);
+}
+
+.pseudo-btn--primary {
+  color: var(--ground);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.approve-note {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: var(--ink-faint);
+}
+
+/* ---------- lists ---------- */
+
+.bullets {
+  margin: 1.25rem 0 0;
+  padding-left: 1.1rem;
+  max-width: 44ch;
+}
+
+.bullets li {
+  margin-bottom: 0.6rem;
+  color: var(--ink-muted);
+  text-wrap: pretty;
+}
+
+/* ---------- six-step process ---------- */
+
+.process {
+  display: grid;
+  gap: clamp(1.75rem, 3.5vw, 2.5rem);
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 44rem) { .process { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 68rem) { .process { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.process h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.process p {
+  margin: 0;
+  max-width: 32ch;
+  font-size: 0.9375rem;
+  color: var(--ink-muted);
+}
+
+/* ---------- worked-example flow ---------- */
+
+.flow {
+  display: grid;
+  gap: 1rem;
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: flow;
+}
+
+@media (min-width: 60rem) { .flow { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+.flow-step {
+  padding: 1.25rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-rule);
+  border-radius: 12px;
+}
+
+.flow-step--human {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--panel));
+}
+
+.flow-tag {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.flow-tag--human { color: var(--accent); }
+
+.flow-step h3 {
+  margin: 0 0 0.7rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.flow-step p {
+  margin: 0 0 0.6rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+  text-wrap: pretty;
+}
+
+.flow-step p:last-child { margin-bottom: 0; }
+
+.flow-emphasis { color: var(--ink); font-weight: 500; }
+
+.pairs { margin: 0; }
+
+.pairs > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--panel-rule);
+}
+
+.pairs > div:last-child { border-bottom: 0; }
+
+.pairs dt { font-size: 0.8125rem; color: var(--ink-muted); }
+
+.pairs dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pair-delta dd { color: var(--accent); font-weight: 600; }
+
+.evidence { margin: 0; padding-left: 1.1rem; }
+
+.evidence li {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+/* ---------- can / cannot comparison ---------- */
+
+.compare {
+  display: grid;
+  gap: 1rem;
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+@media (min-width: 52rem) { .compare { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.compare-col {
+  padding: clamp(1.5rem, 3vw, 2rem);
+  background: var(--panel);
+  border: 1px solid var(--panel-rule);
+  border-radius: 12px;
+}
+
+.compare-col--gated {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--panel));
+}
+
+.compare-head {
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.85rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid var(--panel-rule);
+}
+
+.compare-list { margin: 0; padding: 0; list-style: none; }
+
+.compare-list li {
+  position: relative;
+  padding: 0.45rem 0 0.45rem 1.6rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ink-muted);
+  text-wrap: pretty;
+}
+
+.compare-list li::before {
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Marks are decorative; the column headings carry the meaning. */
+.compare-list--can li::before { content: "\2713"; color: var(--accent); }
+
+.compare-list--cannot li::before {
+  content: "\2013";
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+
+/* ---------- segments ---------- */
+
+.segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: clamp(2rem, 4vw, 2.75rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.segments li {
+  padding: 0.55rem 1.1rem;
+  font-size: 0.9375rem;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--panel-rule);
+  border-radius: 999px;
+}
+
+/* ---------- control cards ---------- */
+
+.cards {
+  display: grid;
+  gap: 1rem;
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 44rem) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 68rem) { .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.cards li {
+  padding: 1.25rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-rule);
+  border-radius: 12px;
+}
+
+.cards h3 {
+  margin: 0 0 0.45rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.cards p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+  text-wrap: pretty;
+}
+
+/* ---------- design chain ---------- */
+
+.chain {
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: chain;
+}
+
+.chain li {
+  position: relative;
+  padding: 0.55rem 0 0.55rem 2.2rem;
+  font-size: 0.9375rem;
+  color: var(--ink-muted);
+  counter-increment: chain;
+}
+
+.chain li::before {
+  content: counter(chain);
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: grid;
+  place-items: center;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 50%;
+}
+
+/* Connector between the numbered stages. */
+.chain li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 0.7rem;
+  top: 2.1rem;
+  bottom: -0.1rem;
+  width: 1px;
+  background: var(--rule);
+}
+
+.section--form .form { margin-top: clamp(2rem, 4vw, 2.75rem); }
