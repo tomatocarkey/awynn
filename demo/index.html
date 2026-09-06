@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trade Break Triage — Model proposes, human disposes</title>
+<style>
+  :root{
+    --bg:#f4f5f7;
+    --surface:#ffffff;
+    --surface-2:#fafbfc;
+    --ink:#15181c;
+    --ink-2:#3d4650;
+    --muted:#6b7682;
+    --faint:#98a2ad;
+    --line:#e0e4e9;
+    --line-2:#eef0f3;
+    --accent:#1e3a5c;
+    --accent-soft:#eef2f7;
+
+    --hi:#14513f;      --hi-bg:#e9f2ee;   --hi-line:#bcd6cb;
+    --med:#7a5411;     --med-bg:#f8f1e2;  --med-line:#e0cba4;
+    --lo:#8a3524;      --lo-bg:#f8ece9;   --lo-line:#e3c2b9;
+
+    --crit:#8a2a20;
+    --gate:#7a4a12;
+    --gate-bg:#fdf7ec;
+    --gate-line:#e4cfa8;
+
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    --radius:5px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:14px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .num{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  button{font-family:inherit; font-size:inherit; cursor:pointer}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 22px}
+
+  /* ---------- header ---------- */
+  header.top{background:var(--surface); border-bottom:1px solid var(--line)}
+  .top-in{display:flex; align-items:baseline; gap:14px; padding:16px 0 14px; flex-wrap:wrap}
+  .brand{font-size:15px; font-weight:640; letter-spacing:-.01em}
+  .principle{
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--muted); border-left:1px solid var(--line); padding-left:14px;
+  }
+  .principle b{color:var(--accent); font-weight:620}
+  .demo-tag{
+    margin-left:auto; font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--faint); border:1px solid var(--line); border-radius:3px; padding:2px 7px;
+  }
+
+  /* ---------- stat strip ---------- */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--line-2)}
+  .stat{padding:12px 0 14px; border-right:1px solid var(--line-2)}
+  .stat:last-child{border-right:0}
+  .stat .k{font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
+  .stat .v{font-family:var(--mono); font-size:19px; font-weight:600; letter-spacing:-.02em; margin-top:3px}
+  .stat .v.attn{color:var(--gate)}
+
+  /* ---------- crumb ---------- */
+  .crumb{display:flex; align-items:center; gap:9px; padding:16px 0 0; font-size:12.5px; color:var(--muted)}
+  .crumb button{
+    background:none; border:0; color:var(--accent); padding:0;
+    font-weight:530; text-decoration:underline; text-underline-offset:2px;
+  }
+  .crumb .sep{color:var(--faint)}
+
+  main{padding:0 0 40px}
+  .panel{
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); margin-top:16px;
+  }
+  .panel-hd{
+    padding:13px 18px; border-bottom:1px solid var(--line-2);
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  }
+  .panel-hd h2{
+    margin:0; font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--muted); font-weight:620;
+  }
+  .panel-bd{padding:18px}
+
+  /* ---------- filters ---------- */
+  .filters{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .filters label{font-size:11px; color:var(--muted); letter-spacing:.04em}
+  select{
+    font-family:inherit; font-size:12.5px; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:4px; padding:4px 8px;
+  }
+
+  /* ---------- table ---------- */
+  .tscroll{overflow-x:auto}
+  table{width:100%; border-collapse:collapse}
+  thead th{
+    text-align:left; font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--muted); font-weight:620; padding:10px 10px;
+    border-bottom:1px solid var(--line); white-space:nowrap; user-select:none;
+  }
+  thead th.sortable{cursor:pointer}
+  thead th.sortable:hover{color:var(--ink-2)}
+  thead th .arrow{color:var(--faint); font-size:9px; margin-left:3px}
+  tbody tr{border-bottom:1px solid var(--line-2); cursor:pointer}
+  tbody tr:last-child{border-bottom:0}
+  tbody tr:hover{background:var(--surface-2)}
+  tbody td{padding:11px 10px; vertical-align:middle}
+  th:nth-child(1),td:nth-child(1){width:1%; white-space:nowrap}
+  th:nth-child(2),td:nth-child(2){min-width:158px}
+  th:nth-child(3),td:nth-child(3){white-space:nowrap}
+  td.r{text-align:right}
+  .tid{font-family:var(--mono); font-size:12.5px; font-weight:560; color:var(--accent); white-space:nowrap}
+  .tick{font-weight:600}
+  .sub{font-size:11.5px; color:var(--muted)}
+  .cat{font-family:var(--mono); font-size:11.5px; color:var(--ink-2)}
+
+  /* ---------- badges ---------- */
+  .badge{
+    display:inline-block; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase;
+    font-weight:640; padding:2.5px 8px; border-radius:3px; border:1px solid transparent;
+    white-space:nowrap;
+  }
+  .badge.high{color:var(--hi); background:var(--hi-bg); border-color:var(--hi-line)}
+  .badge.medium{color:var(--med); background:var(--med-bg); border-color:var(--med-line)}
+  .badge.low{color:var(--lo); background:var(--lo-bg); border-color:var(--lo-line)}
+  .badge.neutral{color:var(--muted); background:var(--surface-2); border-color:var(--line)}
+
+  .sev{font-size:11.5px; font-weight:600}
+  .sev.CRITICAL{color:var(--crit)}
+  .sev.HIGH{color:var(--lo)}
+  .sev.MEDIUM{color:var(--med)}
+  .sev.LOW{color:var(--muted); font-weight:500}
+
+  .status-chip{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:11px; font-weight:600; letter-spacing:.02em; white-space:nowrap;
+  }
+  .status-chip .dot{width:6px; height:6px; border-radius:50%; flex:none}
+  .status-chip.pending{color:var(--gate)}
+  .status-chip.pending .dot{background:var(--gate)}
+  .status-chip.approved{color:var(--hi)}
+  .status-chip.approved .dot{background:var(--hi)}
+  .status-chip.overridden{color:var(--accent)}
+  .status-chip.overridden .dot{background:var(--accent)}
+
+  /* ---------- detail ---------- */
+  .detail-hd{padding:18px; border-bottom:1px solid var(--line-2)}
+  .detail-title{display:flex; align-items:baseline; gap:11px; flex-wrap:wrap}
+  .detail-title .id{font-family:var(--mono); font-size:13px; color:var(--accent); font-weight:600}
+  .detail-title h1{margin:0; font-size:19px; font-weight:640; letter-spacing:-.02em}
+  .detail-title .isin{font-family:var(--mono); font-size:11.5px; color:var(--faint)}
+  .facts{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(142px,1fr));
+    gap:14px 20px; margin-top:15px;
+  }
+  .fact .k{font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+  .fact .v{font-size:13px; margin-top:2px; font-weight:530; overflow-wrap:anywhere}
+  .fact .v.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:0; border-top:1px solid var(--line-2)}
+  @media (max-width:820px){ .split{grid-template-columns:1fr} }
+  .side{padding:18px}
+  .side + .side{border-left:1px solid var(--line-2)}
+  @media (max-width:820px){ .side + .side{border-left:0; border-top:1px solid var(--line-2)} }
+  .side h3{
+    margin:0 0 3px; font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--muted); font-weight:620;
+  }
+  .side .src{font-size:11.5px; color:var(--faint); margin-bottom:12px}
+  .cmp{width:100%; border-collapse:collapse}
+  .cmp td{padding:7px 0; border-bottom:1px solid var(--line-2); font-size:13px}
+  .cmp tr:last-child td{border-bottom:0}
+  .cmp td.lbl{color:var(--muted); font-size:11.5px; width:44%}
+  .cmp td.val{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+  .cmp tr.mismatch td.val{color:var(--lo); font-weight:600}
+  .cmp tr.mismatch td.lbl{color:var(--ink-2); font-weight:530}
+
+  .reason{padding:18px; border-top:1px solid var(--line-2)}
+  .reason h3{
+    margin:0 0 4px; font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--muted); font-weight:620;
+  }
+  .byline{font-size:11.5px; color:var(--faint); margin-bottom:11px}
+  .prose{font-size:14px; line-height:1.68; color:var(--ink-2); max-width:74ch}
+
+  .evidence{margin:16px 0 0; padding:0; list-style:none}
+  .evidence li{
+    position:relative; padding:5px 0 5px 20px; font-size:12.5px;
+    color:var(--ink-2); line-height:1.55;
+  }
+  .evidence li::before{
+    content:""; position:absolute; left:4px; top:12px;
+    width:5px; height:5px; border-radius:50%; background:var(--faint);
+  }
+  .ev-hd{
+    font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--muted); font-weight:620; margin-top:18px;
+  }
+
+  .caveat{
+    margin-top:16px; padding:12px 14px; background:var(--surface-2);
+    border:1px solid var(--line); border-left:2px solid var(--med);
+    border-radius:0 4px 4px 0;
+  }
+  .caveat .h{
+    font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--med); font-weight:640; margin-bottom:4px;
+  }
+  .caveat p{margin:0; font-size:12.5px; line-height:1.6; color:var(--ink-2); max-width:72ch}
+
+  .ca-ref{
+    margin-top:16px; padding:12px 14px; background:var(--accent-soft);
+    border:1px solid #d6dfea; border-radius:4px;
+  }
+  .ca-ref .h{
+    font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--accent); font-weight:640; margin-bottom:4px;
+  }
+  .ca-ref p{margin:0; font-size:12.5px; line-height:1.6; color:var(--ink-2); max-width:72ch}
+
+  /* ---------- proposal ---------- */
+  .proposal{
+    margin:18px; padding:16px 18px; border:1px solid var(--line);
+    border-radius:4px; background:var(--surface-2);
+  }
+  .proposal .h{
+    font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--muted); font-weight:640;
+  }
+  .proposal .action{font-size:17px; font-weight:640; letter-spacing:-.015em; margin-top:5px}
+  .proposal .meta{display:flex; gap:9px; align-items:center; margin-top:9px; flex-wrap:wrap}
+  .not-exec{
+    font-size:11.5px; color:var(--gate); font-weight:560; margin-top:11px;
+    padding-top:10px; border-top:1px solid var(--line);
+  }
+
+  .actions-row{padding:0 18px 18px; display:flex; gap:9px; flex-wrap:wrap}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    border-radius:4px; padding:9px 16px; font-weight:560; font-size:13px;
+    transition:background .12s,border-color .12s;
+  }
+  .btn:hover{background:var(--surface-2); border-color:#cfd6de}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+  .btn.primary:hover{background:#16304d; border-color:#16304d}
+  .btn.approve{background:var(--hi); border-color:var(--hi); color:#fff; padding:11px 22px}
+  .btn.approve:hover{background:#0f3f31; border-color:#0f3f31}
+  .btn.override{background:var(--surface); border-color:#c5ccd5; color:var(--ink); padding:11px 22px}
+  .btn.override:hover{background:#f0f2f5; border-color:#aab4bf}
+  .btn:disabled{opacity:.5; cursor:not-allowed}
+
+  /* ---------- decision gate ---------- */
+  .gate{
+    margin-top:16px; background:var(--surface);
+    border:1px solid var(--gate-line); border-left:3px solid var(--gate);
+    border-radius:var(--radius);
+  }
+  .gate-hd{
+    padding:13px 20px; background:var(--gate-bg); border-bottom:1px solid var(--gate-line);
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .gate-hd .lbl{
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    font-weight:680; color:var(--gate);
+  }
+  .gate-hd .who{font-size:11.5px; color:var(--muted); margin-left:auto}
+  .gate-bd{padding:20px}
+
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--line); border-radius:4px}
+  @media (max-width:760px){ .two-col{grid-template-columns:1fr} }
+  .col{padding:15px 17px}
+  .col + .col{border-left:1px solid var(--line)}
+  @media (max-width:760px){ .col + .col{border-left:0; border-top:1px solid var(--line)} }
+  .col h4{
+    margin:0 0 2px; font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--muted); font-weight:640;
+  }
+  .col .prov{font-size:11px; color:var(--faint); margin-bottom:11px; font-style:italic}
+  .kv{display:flex; justify-content:space-between; gap:12px; padding:5px 0; font-size:12.5px}
+  .kv .k{color:var(--muted)}
+  .kv .v{font-weight:560; text-align:right}
+  .kv .v.mono{font-family:var(--mono)}
+
+  .gate-q{
+    margin:20px 0 15px; padding:15px 17px; background:var(--surface-2);
+    border:1px solid var(--line); border-radius:4px;
+  }
+  .gate-q .q{font-size:15px; font-weight:620; letter-spacing:-.01em}
+  .gate-q .a{font-size:12.5px; color:var(--muted); margin-top:5px; max-width:70ch; line-height:1.6}
+
+  .decide{display:flex; gap:11px; flex-wrap:wrap; align-items:center}
+  .decide .hint{font-size:11.5px; color:var(--muted)}
+
+  .override-box{
+    margin-top:16px; padding:16px 17px; border:1px solid var(--line);
+    border-radius:4px; background:var(--surface-2);
+  }
+  .override-box h4{
+    margin:0 0 10px; font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--muted); font-weight:640;
+  }
+  .opts{display:flex; flex-direction:column; gap:1px}
+  .opt{
+    display:flex; align-items:flex-start; gap:9px; padding:8px 10px;
+    border:1px solid transparent; border-radius:4px; cursor:pointer; font-size:13px;
+  }
+  .opt:hover{background:var(--surface); border-color:var(--line)}
+  .opt input{margin:3px 0 0; accent-color:var(--accent)}
+  .opt .was{font-size:11px; color:var(--faint); margin-left:6px}
+  textarea{
+    width:100%; margin-top:11px; font-family:inherit; font-size:13px;
+    padding:9px 11px; border:1px solid var(--line); border-radius:4px;
+    resize:vertical; min-height:64px; color:var(--ink); background:var(--surface);
+  }
+  textarea:focus{outline:none; border-color:var(--accent)}
+
+  .confirmed{
+    padding:18px 20px; border:1px solid var(--hi-line); border-left:3px solid var(--hi);
+    border-radius:var(--radius); background:var(--hi-bg); margin-top:16px;
+  }
+  .confirmed.ovr{border-color:#c9d4e2; border-left-color:var(--accent); background:var(--accent-soft)}
+  .confirmed .h{
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    font-weight:680; color:var(--hi); margin-bottom:6px;
+  }
+  .confirmed.ovr .h{color:var(--accent)}
+  .confirmed .what{font-size:16px; font-weight:640; letter-spacing:-.015em}
+  .confirmed .meta{font-size:12.5px; color:var(--ink-2); margin-top:7px; line-height:1.65}
+  .confirmed .note{
+    margin-top:9px; padding-top:9px; border-top:1px solid rgba(0,0,0,.08);
+    font-size:12.5px; color:var(--ink-2); font-style:italic;
+  }
+
+  /* ---------- activity log ---------- */
+  .log{margin-top:26px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius)}
+  .log-hd{
+    padding:13px 18px; border-bottom:1px solid var(--line-2);
+    display:flex; align-items:center; gap:12px;
+  }
+  .log-hd h2{
+    margin:0; font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--muted); font-weight:620;
+  }
+  .log-hd .count{font-size:11.5px; color:var(--faint); margin-left:auto}
+  .log-bd{max-height:290px; overflow-y:auto}
+  .log-empty{padding:26px 18px; text-align:center; color:var(--faint); font-size:12.5px}
+  .entry{display:flex; gap:14px; padding:12px 18px; border-bottom:1px solid var(--line-2); font-size:12.5px}
+  .entry:last-child{border-bottom:0}
+  .entry .ts{font-family:var(--mono); font-size:11.5px; color:var(--faint); flex:none; padding-top:1px}
+  .entry .body{flex:1; min-width:0}
+  .entry .line1{display:flex; gap:8px; align-items:baseline; flex-wrap:wrap}
+  .entry .bid{font-family:var(--mono); font-weight:600; color:var(--accent)}
+  .entry .verb{font-weight:620}
+  .entry .verb.approved{color:var(--hi)}
+  .entry .verb.overridden{color:var(--accent)}
+  .entry .det{display:block; color:var(--ink-2); margin-top:3px; line-height:1.55}
+  .entry .det s{color:var(--faint); text-decoration-thickness:1px}
+  .entry .actor{display:block; font-size:11.5px; color:var(--muted); margin-top:3px}
+
+  footer.foot{
+    padding:20px 0 34px; font-size:11.5px; color:var(--faint); line-height:1.65;
+  }
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="top-in">
+      <span class="brand">Trade Break Triage</span>
+      <span class="principle">Model proposes &middot; <b>Human disposes</b></span>
+      <span class="demo-tag">Prototype &mdash; static data</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">Open breaks</div><div class="v" id="s-open">0</div></div>
+      <div class="stat"><div class="k">Economic risk under review</div><div class="v" id="s-risk">$0</div></div>
+      <div class="stat"><div class="k">Awaiting human decision</div><div class="v attn" id="s-pending">0</div></div>
+      <div class="stat"><div class="k">Decided this session</div><div class="v" id="s-done">0</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="crumb" id="crumb"></nav>
+  <main>
+    <section id="screen-queue"></section>
+    <section id="screen-detail" class="hidden"></section>
+    <section id="screen-decision" class="hidden"></section>
+
+    <aside class="log">
+      <div class="log-hd">
+        <h2>Activity log</h2>
+        <span class="count" id="log-count">0 decisions</span>
+      </div>
+      <div class="log-bd" id="log-body">
+        <div class="log-empty">
+          No decisions recorded. Every resolution below is written here at the moment a
+          human approves or overrides it &mdash; nothing reaches this log without one.
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    Prototype for demonstration. Break records are drawn from a static reconciliation
+    dataset; agent explanations are pre-computed and frozen, and no model is called at
+    runtime. Every proposed resolution requires an explicit human decision before it is
+    recorded &mdash; nothing in this tool executes on its own.
+  </footer>
+</div>
+
+<script type="application/json" id="break-data">{"generated_from":"data/triage.db (run_id 1, rules baseline) + corporate_actions.csv + historical_breaks.csv","note":"Static demo data. Explanations are authored and frozen; no model is called at runtime.","actions":{"AUTO_RESOLVE":"Auto-resolve","CORRECT_STATIC_DATA":"Correct static data","REQUEST_BROKER_CONFIRM":"Request broker re-confirmation","ASSIGN_TRADE_SUPPORT":"Assign to trade support","BLOCK_SETTLEMENT":"Block settlement","ESCALATE_SENIOR_OPS":"Escalate to senior ops","WRITE_OFF_IMMATERIAL":"Write off as immaterial","HOLD_MONITOR":"Hold and monitor"},"history":[{"historical_id":"HIST-001","resolved_date":"2026-05-12","ticker":"AAPL","asset_class":"EQUITY","break_category":"QUANTITY_MISMATCH","root_cause_category":"UNAPPLIED_CORPORATE_ACTION","counterparty":"Morgan Stanley","age_days_at_resolution":"2","economic_risk_usd":"0","resolution_summary":"Applied a four-for-one stock split to the broker-side confirmation terms; cash notional already agreed."},{"historical_id":"HIST-002","resolved_date":"2026-05-19","ticker":"NVDA","asset_class":"EQUITY","break_category":"QUANTITY_MISMATCH","root_cause_category":"UNAPPLIED_CORPORATE_ACTION","counterparty":"Deutsche Bank","age_days_at_resolution":"4","economic_risk_usd":"0","resolution_summary":"Applied a ten-for-one split adjustment; corrected share count and price only."},{"historical_id":"HIST-003","resolved_date":"2026-06-03","ticker":"GE","asset_class":"EQUITY","break_category":"QUANTITY_MISMATCH","root_cause_category":"UNAPPLIED_CORPORATE_ACTION","counterparty":"Deutsche Bank","age_days_at_resolution":"8","economic_risk_usd":"125000","resolution_summary":"Removed a spinoff entitlement incorrectly booked against the parent security; reconciled the separate distribution line."},{"historical_id":"HIST-004","resolved_date":"2026-06-20","ticker":"TSLA","asset_class":"EQUITY","break_category":"MISSING_IN_BROKER","root_cause_category":"GENUINE_TRADE_DISCREPANCY","counterparty":"Nomura","age_days_at_resolution":"3","economic_risk_usd":"980000","resolution_summary":"Counterparty could not locate the execution; trade was cancelled and booking corrected."},{"historical_id":"HIST-005","resolved_date":"2026-06-21","ticker":"IWM","asset_class":"ETF","break_category":"PRICE_MISMATCH","root_cause_category":"ROUNDING_CONVENTION","counterparty":"Interactive Brokers","age_days_at_resolution":"91","economic_risk_usd":"42","resolution_summary":"Agreed price precision convention and closed the residual after an aged-break review."},{"historical_id":"HIST-006","resolved_date":"2026-06-30","ticker":"CORP-AB27","asset_class":"CORPORATE_BOND","break_category":"PRICE_MISMATCH","root_cause_category":"ACCRUAL_CONVENTION","counterparty":"Citigroup","age_days_at_resolution":"2","economic_risk_usd":"7400","resolution_summary":"Aligned clean-price versus dirty-price convention and corrected accrued interest."},{"historical_id":"HIST-007","resolved_date":"2026-07-03","ticker":"ABC","asset_class":"EQUITY","break_category":"SECURITY_ID_MISMATCH","root_cause_category":"STATIC_DATA_ERROR","counterparty":"Citadel Securities","age_days_at_resolution":"11","economic_risk_usd":"0","resolution_summary":"Updated retired identifier in the security master and rematched settlement instructions."},{"historical_id":"HIST-008","resolved_date":"2026-07-08","ticker":"EEM","asset_class":"ETF","break_category":"SSI_COUNTERPARTY","root_cause_category":"STATIC_DATA_ERROR","counterparty":"Standard Chartered","age_days_at_resolution":"1","economic_risk_usd":"420000","resolution_summary":"Blocked settlement and replaced an unapproved standing settlement instruction."}],"breaks":[{"break_id":"BRK-1001","first_detected":"2026-08-02","trade_date":"2026-08-01","settle_date":"2026-08-04","ticker":"UST-2031","security_name":"US Treasury 2.5% 15-Aug-2031","identifier":"US912828ZT0","asset_class":"GOVT_BOND","side":"BUY","currency":"USD","counterparty":"Goldman Sachs","book":"RATES_RV","break_category":"PRICE_MISMATCH","severity":"LOW","materiality":"IMMATERIAL","age_days":2,"trade_notional_usd":4993750.0,"break_value_usd":2.15,"economic_risk_usd":2.15,"description":"Clean price differs in the 6th decimal place. Blotter 99.875000 vs broker 99.875043. Consistent with a rounding convention difference on the broker's confirm engine.","root_cause_category":"ROUNDING_CONVENTION","ai_explanation":"Quantity, currency and settlement all agree. The clean price differs only in the sixth decimal place -- 99.875000 against 99.875043 -- on a $5mm face position, which works out to $2.15. A difference that small on a Treasury is a rounding artefact in the broker's confirm engine, not a pricing disagreement. There is no economic exposure here.","evidence":["Price difference is 0.000043 points; break value $2.15 on $4.99mm notional","Quantity, currency, side and settle date all match exactly","Goldman Sachs confirms carry six-decimal precision; the blotter stores four"],"caveat":null,"confidence":"high","confidence_score":0.79,"ai_suggested_action":"AUTO_RESOLVE","ai_action_label":"Auto-resolve","urgency":"ROUTINE","owner":"PORTFOLIO_ACCOUNTING","sla_hours":120,"escalate_to_human":false,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"5,000,000","external":"5,000,000","match":true},{"label":"Price","internal":"99.8750","external":"99.8750","match":false},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true}]},{"break_id":"BRK-1002","first_detected":"2026-07-17","trade_date":"2026-07-16","settle_date":"2026-07-20","ticker":"AAPL","security_name":"Apple Inc","identifier":"037833100","asset_class":"EQUITY","side":"BUY","currency":"USD","counterparty":"Morgan Stanley","book":"US_LONG_SHORT","break_category":"QUANTITY_MISMATCH","severity":"MEDIUM","materiality":"IMMATERIAL","age_days":18,"trade_notional_usd":2350000.0,"break_value_usd":1762500.0,"economic_risk_usd":0.0,"description":"Blotter shows 40000 shares at 58.75; broker confirms 10000 at 235.00. Notional agrees exactly at 2350000. Quantity ratio is exactly 4:1.","root_cause_category":"UNAPPLIED_CORPORATE_ACTION","ai_explanation":"Cash notional agrees exactly at $2,350,000 and the share ratio is precisely 4:1. Apple executed a four-for-one forward split (CA-001) with an ex-date of 2026-07-15, the day before this trade. The blotter is stated in post-split terms and the broker confirmation is not. The position is right; the units are not. No economic loss.","evidence":["Notional agrees exactly: 40,000 x 58.75 = 10,000 x 235.00 = $2,350,000","CA-001: AAPL 4:1 stock split, ex-date 2026-07-15, trade date 2026-07-16","Precedent HIST-001: same signature, same counterparty, resolved in 2 days"],"caveat":null,"confidence":"high","confidence_score":0.85,"ai_suggested_action":"AUTO_RESOLVE","ai_action_label":"Auto-resolve","urgency":"ROUTINE","owner":"PORTFOLIO_ACCOUNTING","sla_hours":120,"escalate_to_human":false,"corporate_action":{"ca_id":"CA-001","action_type":"STOCK_SPLIT","ex_date":"2026-07-15","ratio_or_amount":"4:1","details":"Four-for-one forward stock split. Shares outstanding multiply by 4; price divides by 4. Trades booked on or after the ex-date must be expressed in post-split terms."},"comparison":[{"label":"Quantity","internal":"40,000","external":"10,000","match":false},{"label":"Price","internal":"58.7500","external":"235.0000","match":false},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true}]},{"break_id":"BRK-1003","first_detected":"2026-06-18","trade_date":"2026-06-16","settle_date":"2026-06-18","ticker":"TSLA","security_name":"Tesla Inc","identifier":"88160R101","asset_class":"EQUITY","side":"SELL","currency":"USD","counterparty":"Nomura","book":"US_LONG_SHORT","break_category":"MISSING_IN_BROKER","severity":"CRITICAL","materiality":"MATERIAL","age_days":47,"trade_notional_usd":2400400.0,"break_value_usd":2400400.0,"economic_risk_usd":2400400.0,"description":"Fund blotter records a sale of 8500 TSLA. No corresponding trade appears in any broker confirmation file for this or subsequent days. Position has been carried unmatched for seven weeks.","root_cause_category":"GENUINE_TRADE_DISCREPANCY","ai_explanation":"The blotter records a sale of 8,500 TSLA. No matching execution appears in any Nomura confirmation file for the trade date or the seven weeks since. This is not a matching problem -- there is nothing on the other side to match against. Either the trade was never executed and the blotter is carrying a phantom short, or it was executed and the counterparty has lost it. I cannot distinguish between those two from the reconciliation data alone, and they have opposite remedies.","evidence":["No broker record on trade date or on any subsequent file (47 days)","Full notional $2,400,400 is unmatched, not a partial difference","Precedent HIST-004: same ticker and counterparty; on that occasion the counterparty could not locate the execution and the booking was corrected"],"caveat":"The precedent points at a booking error, but a single prior instance is not a basis for assuming the same cause. The position has been carried unmatched for seven weeks, so if it is a real short the exposure is live.","confidence":"low","confidence_score":0.55,"ai_suggested_action":"ESCALATE_SENIOR_OPS","ai_action_label":"Escalate to senior ops","urgency":"SAME_DAY","owner":"TRADE_SUPPORT","sla_hours":8,"escalate_to_human":true,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"8,500","external":"0","match":false},{"label":"Price","internal":"282.4000","external":"--","match":false},{"label":"Side","internal":"SELL","external":"SELL","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true}]},{"break_id":"BRK-1004","first_detected":"2026-08-02","trade_date":"2026-08-01","settle_date":"2026-08-05","ticker":"MSFT","security_name":"Microsoft Corp","identifier":"594918104","asset_class":"EQUITY","side":"BUY","currency":"USD","counterparty":"Jefferies","book":"US_LONG_SHORT","break_category":"FEE_COMMISSION","severity":"LOW","materiality":"IMMATERIAL","age_days":2,"trade_notional_usd":5174400.0,"break_value_usd":18.5,"economic_risk_usd":18.5,"description":"Quantity and price match exactly. Commission on blotter 240.00 vs broker 258.50. Difference of 18.50 on a 5.17m notional trade.","root_cause_category":"FEE_SCHEDULE_DIFFERENCE","ai_explanation":"Quantity and price match to the cent. Commission differs by $18.50 -- $240.00 booked against $258.50 confirmed -- on a $5.17mm trade. The shape is a fee schedule difference: the blotter is applying a flat rate where Jefferies has billed a tiered one. That is the most common cause of a small commission delta, but I have no copy of the agreed schedule to check it against.","evidence":["Trade economics match exactly; the difference is confined to commission","$18.50 on $5,174,400 notional is 0.04 basis points","No corporate action or static data event on MSFT in this period"],"caveat":"Fee schedule inferred from the shape of the difference, not verified against the commission agreement. If the schedule is flat, this is a broker billing error and may repeat across other trades with this counterparty.","confidence":"medium","confidence_score":0.71,"ai_suggested_action":"WRITE_OFF_IMMATERIAL","ai_action_label":"Write off as immaterial","urgency":"ROUTINE","owner":"PORTFOLIO_ACCOUNTING","sla_hours":120,"escalate_to_human":false,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"12,000","external":"12,000","match":true},{"label":"Price","internal":"431.2000","external":"431.2000","match":true},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true},{"label":"Commission","internal":"240.00","external":"258.50","match":false}]},{"break_id":"BRK-1005","first_detected":"2026-07-02","trade_date":"2026-07-01","settle_date":"2026-07-06","ticker":"TWLO","security_name":"Twilio Inc","identifier":"90138F102","asset_class":"EQUITY","side":"BUY","currency":"USD","counterparty":"Citadel Securities","book":"TECH_GROWTH","break_category":"SECURITY_ID_MISMATCH","severity":"HIGH","materiality":"MATERIAL","age_days":33,"trade_notional_usd":2892000.0,"break_value_usd":2892000.0,"economic_risk_usd":0.0,"description":"Quantity price and notional all agree. Blotter carries CUSIP 90138F102; broker confirm carries 90138F201. Trade cannot be matched on identifier and will not settle in its current state.","root_cause_category":"STATIC_DATA_ERROR","ai_explanation":"Quantity, price and notional all agree. The two sides disagree only on the security identifier: the blotter carries CUSIP 90138F102, Citadel confirms 90138F201. Twilio reincorporated and the old CUSIP was retired on 2026-06-30 (CA-003), the day before this trade. The security master was not updated. The trade cannot settle in its current state -- not because the economics are wrong, but because the identifier will not match.","evidence":["CA-003: TWLO identifier change, 90138F102 retired 2026-06-30; trade date 2026-07-01","Quantity, price and notional agree exactly; only the identifier differs","Precedent HIST-007: same counterparty, resolved by updating the security master"],"caveat":null,"confidence":"high","confidence_score":0.82,"ai_suggested_action":"CORRECT_STATIC_DATA","ai_action_label":"Correct static data","urgency":"NEXT_BUSINESS_DAY","owner":"OPS_SETTLEMENTS","sla_hours":24,"escalate_to_human":false,"corporate_action":{"ca_id":"CA-003","action_type":"IDENTIFIER_CHANGE","ex_date":"2026-06-30","ratio_or_amount":"","details":"Reincorporation resulting in a new CUSIP. Old CUSIP 90138F102 retired effective 2026-06-30; new CUSIP 90138F201. Ticker unchanged."},"comparison":[{"label":"Quantity","internal":"30,000","external":"30,000","match":true},{"label":"Price","internal":"96.4000","external":"96.4000","match":true},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true},{"label":"CUSIP","internal":"90138F102","external":"90138F201","match":false}]},{"break_id":"BRK-1006","first_detected":"2026-07-29","trade_date":"2026-07-28","settle_date":"2026-07-30","ticker":"XLE","security_name":"Energy Select Sector SPDR","identifier":"81369Y506","asset_class":"ETF","side":"BUY","currency":"USD","counterparty":"BofA Securities","book":"MACRO_OVERLAY","break_category":"DUPLICATE_BOOKING","severity":"HIGH","materiality":"MATERIAL","age_days":6,"trade_notional_usd":1680000.0,"break_value_usd":840000.0,"economic_risk_usd":840000.0,"description":"Broker file contains two identical fills of 20000 at 84.00 with different execution IDs. Blotter has one. Trade was executed as a give-up; suspected double-capture on the clearing side.","root_cause_category":"DUPLICATE_CAPTURE","ai_explanation":"The BofA file contains two identical fills of 20,000 XLE at 84.00 under different execution IDs. The blotter has one. The trade was executed as a give-up, and double-capture on the clearing side is the usual explanation when two fills are identical in every field except the execution ID. The alternative -- that the fund genuinely bought 40,000 and only booked half -- would leave a cash movement I do not see.","evidence":["Two broker fills identical in quantity, price and timestamp; execution IDs differ","Give-up trade: clearing broker and executing broker are separate parties","No second cash movement on the fund side to support a 40,000 share purchase"],"caveat":"Duplicate capture is inferred from the identical fills. Confirming it needs the executing broker's record, which is not in the reconciliation feed.","confidence":"medium","confidence_score":0.73,"ai_suggested_action":"REQUEST_BROKER_CONFIRM","ai_action_label":"Request broker re-confirmation","urgency":"NEXT_BUSINESS_DAY","owner":"TRADE_SUPPORT","sla_hours":24,"escalate_to_human":false,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"20,000","external":"40,000","match":false},{"label":"Price","internal":"84.0000","external":"84.0000","match":true},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true},{"label":"Fill count","internal":"1","external":"2","match":false},{"label":"Execution IDs","internal":"EXC-77120","external":"EXC-77120, EXC-77414","match":false}]},{"break_id":"BRK-1007","first_detected":"2026-07-23","trade_date":"2026-07-22","settle_date":"2026-07-24","ticker":"JNJ","security_name":"Johnson & Johnson","identifier":"478160104","asset_class":"EQUITY","side":"BUY","currency":"USD","counterparty":"UBS","book":"US_LONG_SHORT","break_category":"PRICE_MISMATCH","severity":"LOW","materiality":"IMMATERIAL","age_days":12,"trade_notional_usd":1345600.0,"break_value_usd":9920.0,"economic_risk_usd":0.0,"description":"Quantity matches. Blotter price 168.20 vs broker 169.44. Difference of exactly 1.24 per share across the full 8000 share lot.","root_cause_category":"UNAPPLIED_CORPORATE_ACTION","ai_explanation":"Quantity matches. The price differs by exactly 1.24 per share across the full 8,000 share lot. Johnson & Johnson went ex-dividend on 2026-07-22 at exactly 1.24 per share (CA-002) -- the trade date. One side priced the trade cum-dividend and the other ex-dividend. The $9,920 apparent difference is the dividend entitlement, not a pricing error.","evidence":["Price difference is 1.2400 per share, matching CA-002 to the cent","CA-002: JNJ cash dividend 1.24, ex-date 2026-07-22 = trade date","Difference applies uniformly across all 8,000 shares"],"caveat":null,"confidence":"high","confidence_score":0.85,"ai_suggested_action":"AUTO_RESOLVE","ai_action_label":"Auto-resolve","urgency":"ROUTINE","owner":"PORTFOLIO_ACCOUNTING","sla_hours":120,"escalate_to_human":false,"corporate_action":{"ca_id":"CA-002","action_type":"CASH_DIVIDEND","ex_date":"2026-07-22","ratio_or_amount":"1.24","details":"Quarterly cash dividend of 1.24 per share. Prices quoted on or after the ex-date trade without entitlement to the dividend."},"comparison":[{"label":"Quantity","internal":"8,000","external":"8,000","match":true},{"label":"Price","internal":"168.2000","external":"169.4400","match":false},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true}]},{"break_id":"BRK-1008","first_detected":"2026-07-24","trade_date":"2026-07-23","settle_date":"2026-07-24","ticker":"SPY","security_name":"SPDR S&P 500 ETF Trust","identifier":"78462F103","asset_class":"ETF","side":"SELL","currency":"USD","counterparty":"UBS","book":"MACRO_OVERLAY","break_category":"SETTLEMENT_DATE_MISMATCH","severity":"MEDIUM","materiality":"MATERIAL","age_days":11,"trade_notional_usd":9192000.0,"break_value_usd":0.0,"economic_risk_usd":0.0,"description":"Economics match exactly. Blotter settle date 2026-07-24 (T+1); broker confirm shows 2026-07-27 (T+2). No cash impact recorded yet but the settlement ladder is misaligned.","root_cause_category":"SETTLEMENT_CONVENTION","ai_explanation":"Economics match exactly -- same quantity, same price, same side. The two sides disagree on settlement date: the blotter says 2026-07-24 on a T+1 basis, UBS confirms 2026-07-27 on T+2. No cash has moved yet, so there is no loss recorded, but the settlement ladder is misaligned and the fund will show a funding gap on the 24th if this is not corrected first.","evidence":["Quantity, price and side agree exactly; only the settlement date differs","Blotter applies T+1; broker confirm applies T+2","$9.19mm notional -- large enough that a funding mismatch is material to the cash ladder"],"caveat":"I cannot tell which convention is correct for this counterparty without the governing agreement. The fix depends on that, so this needs a human to look at the terms rather than an automatic adjustment.","confidence":"medium","confidence_score":0.74,"ai_suggested_action":"ASSIGN_TRADE_SUPPORT","ai_action_label":"Assign to trade support","urgency":"ROUTINE","owner":"OPS_SETTLEMENTS","sla_hours":120,"escalate_to_human":false,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"15,000","external":"15,000","match":true},{"label":"Price","internal":"612.8000","external":"612.8000","match":true},{"label":"Side","internal":"SELL","external":"SELL","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true},{"label":"Settle date","internal":"2026-07-24","external":"2026-07-27","match":false},{"label":"Convention","internal":"T+1","external":"T+2","match":false}]},{"break_id":"BRK-1009","first_detected":"2026-07-28","trade_date":"2026-07-27","settle_date":"2026-07-29","ticker":"SAP","security_name":"SAP SE","identifier":"D66992104","asset_class":"EQUITY","side":"BUY","currency":"EUR","counterparty":"Barclays","book":"EUROPE_LONG_SHORT","break_category":"FX_RATE","severity":"LOW","materiality":"IMMATERIAL","age_days":7,"trade_notional_usd":4180000.0,"break_value_usd":4200.0,"economic_risk_usd":4200.0,"description":"Local currency terms agree at EUR 214.50. USD equivalents differ: blotter applied 1.0827 EURUSD fixing; broker applied 1.0838. Difference of 4200 on the USD book value.","root_cause_category":"FX_FIXING_DIFFERENCE","ai_explanation":"Local currency terms agree exactly at EUR 214.50 on 18,000 shares. The USD book values differ because the two sides applied different EURUSD fixings: 1.0827 on the blotter, 1.0838 at Barclays. That is an 11 pip difference, worth $4,200 on a $4.18mm position. This is a fixing source or timing difference, not a trade discrepancy.","evidence":["EUR terms match exactly; the difference is confined to the USD translation","EURUSD 1.0827 vs 1.0838 -- 11 pips, consistent with different fixing times","$4,200 on $4.18mm notional is 1.0 basis point"],"caveat":"Whether the fund's fixing or the broker's is the contractual one is a policy question I cannot resolve from the trade data.","confidence":"medium","confidence_score":0.72,"ai_suggested_action":"WRITE_OFF_IMMATERIAL","ai_action_label":"Write off as immaterial","urgency":"ROUTINE","owner":"PORTFOLIO_ACCOUNTING","sla_hours":120,"escalate_to_human":false,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"18,000","external":"18,000","match":true},{"label":"Price","internal":"214.5000","external":"214.5000","match":true},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"EUR","external":"EUR","match":true},{"label":"EURUSD fixing","internal":"1.0827","external":"1.0838","match":false},{"label":"Local price","internal":"EUR 214.50","external":"EUR 214.50","match":true}]},{"break_id":"BRK-1010","first_detected":"2026-07-12","trade_date":"2026-07-10","settle_date":"2026-07-14","ticker":"ORCL","security_name":"Oracle Corp","identifier":"68389X105","asset_class":"EQUITY","side":"BUY","currency":"USD","counterparty":"JP Morgan","book":"TECH_GROWTH","break_category":"MISSING_IN_BLOTTER","severity":"CRITICAL","materiality":"MATERIAL","age_days":23,"trade_notional_usd":1115280.0,"break_value_usd":1115280.0,"economic_risk_usd":1115280.0,"description":"Broker confirms a purchase of 7200 ORCL. No matching trade on the fund blotter. Fund shows no corresponding cash movement or position increase.","root_cause_category":"GENUINE_TRADE_DISCREPANCY","ai_explanation":"JP Morgan confirms a purchase of 7,200 ORCL at 154.90. There is no matching trade on the fund blotter, no corresponding cash movement, and no position increase. The fund's records show no knowledge of this trade at all. That is either a missed booking on the fund side or a trade the broker has assigned to the wrong account -- and the second possibility is why this should not be booked on the strength of the confirmation alone.","evidence":["Broker confirms 7,200 shares at 154.90; blotter has no record","No cash movement and no position change on the fund side","Unmatched for 23 days past trade date"],"caveat":"I have no way to tell a missed booking from a mis-assigned trade using the reconciliation feed. Booking it to clear the break would create a real position from what might be another fund's trade.","confidence":"low","confidence_score":0.55,"ai_suggested_action":"ESCALATE_SENIOR_OPS","ai_action_label":"Escalate to senior ops","urgency":"SAME_DAY","owner":"TRADE_SUPPORT","sla_hours":8,"escalate_to_human":true,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"0","external":"7,200","match":false},{"label":"Price","internal":"--","external":"154.9000","match":false},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true}]},{"break_id":"BRK-1011","first_detected":"2026-07-31","trade_date":"2026-07-30","settle_date":"2026-08-03","ticker":"BAC","security_name":"Bank of America Corp","identifier":"060505104","asset_class":"EQUITY","side":"BUY","currency":"USD","counterparty":"Goldman Sachs","book":"FINANCIALS","break_category":"DIRECTION_MISMATCH","severity":"CRITICAL","materiality":"MATERIAL","age_days":4,"trade_notional_usd":1870000.0,"break_value_usd":3740000.0,"economic_risk_usd":3740000.0,"description":"Quantity and price agree in absolute terms. Blotter records a BUY of 25000; broker confirms a SELL of 25000. Directional exposure differs by 50000 shares.","root_cause_category":"BOOKING_ERROR","ai_explanation":"Quantity and price agree exactly in absolute terms, but the two sides disagree on direction: the blotter records a BUY of 25,000 and Goldman confirms a SELL. Net directional exposure is wrong by 50,000 shares, or $3.74mm. Nothing about the trade economics is ambiguous, which is what points at a sign error on capture rather than a genuine disagreement about what was traded.","evidence":["Absolute quantity and price match to the cent on both sides","No corporate action on BAC in the current reconciliation period","Directional exposure differs by 50,000 shares (2x the position)"],"caveat":"High confidence that this is a direction error; no confidence about which side has it wrong. The fund's true exposure is unknown until the front office confirms the intended direction, so this cannot be corrected mechanically.","confidence":"high","confidence_score":0.82,"ai_suggested_action":"ESCALATE_SENIOR_OPS","ai_action_label":"Escalate to senior ops","urgency":"IMMEDIATE","owner":"TRADE_SUPPORT","sla_hours":1,"escalate_to_human":true,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"25,000","external":"-25,000","match":false},{"label":"Price","internal":"74.8000","external":"74.8000","match":true},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true},{"label":"Direction","internal":"BUY","external":"SELL","match":false},{"label":"Signed quantity","internal":"+25,000","external":"-25,000","match":false}]},{"break_id":"BRK-1012","first_detected":"2026-07-26","trade_date":"2026-07-24","settle_date":"2026-07-28","ticker":"PFE","security_name":"Pfizer Inc","identifier":"717081103","asset_class":"EQUITY","side":"BUY","currency":"USD","counterparty":"Morgan Stanley","book":"HEALTHCARE","break_category":"ALLOCATION_MISMATCH","severity":"MEDIUM","materiality":"MATERIAL","age_days":9,"trade_notional_usd":514800.0,"break_value_usd":85800.0,"economic_risk_usd":85800.0,"description":"Parent block of 18000 executed at 28.60. Blotter shows 15000 allocated to this book; remaining 3000 is not allocated to any book in the fund complex.","root_cause_category":"ALLOCATION_INCOMPLETE","ai_explanation":"Morgan Stanley confirms the parent block: 18,000 PFE at 28.60. The blotter shows 15,000 allocated to this book. The remaining 3,000 shares are not allocated to any book in the fund complex. The block executed correctly -- the allocation simply was not finished. The $85,800 residual sits unassigned.","evidence":["Parent block of 18,000 at 28.60 confirmed; 15,000 allocated to this book","Remaining 3,000 shares appear in no other book across the complex","Price agrees exactly on both sides -- the execution is not in dispute"],"caveat":"Which book the residual belongs to is an allocation decision, not something recoverable from the reconciliation data.","confidence":"medium","confidence_score":0.73,"ai_suggested_action":"ASSIGN_TRADE_SUPPORT","ai_action_label":"Assign to trade support","urgency":"ROUTINE","owner":"TRADE_SUPPORT","sla_hours":120,"escalate_to_human":false,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"15,000","external":"18,000","match":false},{"label":"Price","internal":"28.6000","external":"28.6000","match":true},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true},{"label":"Block quantity","internal":"18,000","external":"18,000","match":true},{"label":"Allocated","internal":"15,000","external":"18,000","match":false},{"label":"Unallocated","internal":"3,000","external":"0","match":false}]},{"break_id":"BRK-1013","first_detected":"2026-07-10","trade_date":"2026-07-09","settle_date":"2026-07-13","ticker":"GE","security_name":"GE Aerospace","identifier":"369604301","asset_class":"EQUITY","side":"BUY","currency":"USD","counterparty":"Deutsche Bank","book":"INDUSTRIALS","break_category":"QUANTITY_MISMATCH","severity":"HIGH","materiality":"MATERIAL","age_days":25,"trade_notional_usd":3446000.0,"break_value_usd":861500.0,"economic_risk_usd":861500.0,"description":"Price matches. Blotter 25000 shares vs broker 20000. Difference of 5000 shares is exactly one quarter of the broker quantity.","root_cause_category":"UNKNOWN","ai_explanation":"Price matches exactly. The blotter carries 5,000 more shares than Deutsche Bank confirms, and 5,000 is exactly one quarter of 20,000. GE Aerospace distributed GE Vernova on a 1:4 ratio (CA-004, ex-date 2026-07-08), and a spinoff entitlement booked onto the parent line instead of a separate GEV position would produce exactly this ratio. That is the reading the numbers support. It is not the only one: a plain 5,000 share booking error on a 25,000 share order produces the same arithmetic, and I cannot separate the two from the reconciliation data.","evidence":["Quantity difference is 5,000 = exactly 1/4 of the broker quantity of 20,000","CA-004: GE 1:4 spinoff of GE Vernova, ex-date 2026-07-08; trade date 2026-07-09","Precedent HIST-003: GE, same counterparty, spinoff entitlement booked against the parent -- but that one carried $125,000 of economic risk, not zero"],"caveat":"The ratio match is suggestive, not conclusive. CA-004 states GE share count is unchanged by the spinoff, so a correctly processed entitlement should not have touched this line at all -- which weakens the corporate action reading rather than supporting it. $861,500 is exposed either way. Treat the corporate action as a hypothesis to check first, not a finding.","confidence":"low","confidence_score":0.3,"ai_suggested_action":"ESCALATE_SENIOR_OPS","ai_action_label":"Escalate to senior ops","urgency":"NEXT_BUSINESS_DAY","owner":"TRADE_SUPPORT","sla_hours":24,"escalate_to_human":true,"corporate_action":{"ca_id":"CA-004","action_type":"SPINOFF","ex_date":"2026-07-08","ratio_or_amount":"1:4","details":"Spinoff of GE Vernova. Holders receive 1 GEV share for every 4 GE shares held. GE share count is unchanged; a separate GEV line is created."},"comparison":[{"label":"Quantity","internal":"25,000","external":"20,000","match":false},{"label":"Price","internal":"172.3000","external":"172.3000","match":true},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true}]},{"break_id":"BRK-1014","first_detected":"2026-04-14","trade_date":"2026-04-10","settle_date":"2026-04-14","ticker":"IWM","security_name":"iShares Russell 2000 ETF","identifier":"464287655","asset_class":"ETF","side":"SELL","currency":"USD","counterparty":"Interactive Brokers","book":"MACRO_OVERLAY","break_category":"PRICE_MISMATCH","severity":"MEDIUM","materiality":"IMMATERIAL","age_days":112,"trade_notional_usd":953660.0,"break_value_usd":60.0,"economic_risk_usd":60.0,"description":"Price differs by 0.0150 per share on a 4000 share lot. Break value is 60.00. Item has been open and unactioned on the recs report for 112 days.","root_cause_category":"ROUNDING_CONVENTION","ai_explanation":"The price differs by 0.0150 per share on 4,000 shares -- a break value of $60. The stored classification calls this a rounding convention, but 1.5 cents is too large for a rounding artefact on a liquid ETF; it is more consistent with a genuine difference in fill price between the two records. The honest position is that nobody knows: the item has sat unactioned on the recs report for 112 days precisely because $60 was never worth the enquiry.","evidence":["Price difference 0.0150 per share; break value $60 on $953,660 notional","Open and unactioned for 112 days -- past any aged-break threshold","Precedent HIST-005: same ticker and counterparty, closed as a precision convention after 91 days at a similar value"],"caveat":"Low confidence in the cause, not in the materiality. $60 does not justify investigation, but the aged-break policy still requires a human to close it rather than letting it roll forward for another quarter.","confidence":"low","confidence_score":0.45,"ai_suggested_action":"WRITE_OFF_IMMATERIAL","ai_action_label":"Write off as immaterial","urgency":"NEXT_BUSINESS_DAY","owner":"PORTFOLIO_ACCOUNTING","sla_hours":24,"escalate_to_human":false,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"4,000","external":"4,000","match":true},{"label":"Price","internal":"238.4150","external":"238.4300","match":false},{"label":"Side","internal":"SELL","external":"SELL","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true}]},{"break_id":"BRK-1015","first_detected":"2026-07-30","trade_date":"2026-07-29","settle_date":"2026-08-03","ticker":"CORP-VZ29","security_name":"Verizon Communications 4.329% 2029","identifier":"92343VER8","asset_class":"CORP_BOND","side":"BUY","currency":"USD","counterparty":"Citigroup","book":"CREDIT_LONG_SHORT","break_category":"PRICE_MISMATCH","severity":"LOW","materiality":"IMMATERIAL","age_days":5,"trade_notional_usd":2028750.0,"break_value_usd":9800.0,"economic_risk_usd":9800.0,"description":"Blotter price 101.4375 vs broker 101.9275 on a 2mm corporate bond. Difference of 0.49 points. Security is thinly traded with wide dealer marks.","root_cause_category":"GENUINE_TRADE_DISCREPANCY","ai_explanation":"Blotter price 101.4375 against Citigroup's 101.9275 on a $2mm Verizon corporate bond -- a difference of 0.49 points, or $9,800. The security is thinly traded with wide dealer marks, so a half-point spread between two sources is not by itself evidence of an error. But it is also not evidence that the price is right. Without a third-party mark I cannot tell a genuine execution difference from a stale blotter price.","evidence":["Price difference 0.4900 points on $2mm face = $9,800","Quantity, settle date and currency all agree","Thinly traded credit: dealer marks routinely diverge by this much"],"caveat":"No independent pricing source in the reconciliation feed. Both prices are plausible for this bond, which means the break cannot be resolved from the data available -- it needs the executed level from the counterparty.","confidence":"low","confidence_score":0.55,"ai_suggested_action":"REQUEST_BROKER_CONFIRM","ai_action_label":"Request broker re-confirmation","urgency":"ROUTINE","owner":"TRADE_SUPPORT","sla_hours":120,"escalate_to_human":true,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"2,000,000","external":"2,000,000","match":true},{"label":"Price","internal":"101.4375","external":"101.9275","match":false},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true}]},{"break_id":"BRK-1016","first_detected":"2026-05-21","trade_date":"2026-05-21","settle_date":"2026-05-26","ticker":"NVDA","security_name":"NVIDIA Corp","identifier":"67066G104","asset_class":"EQUITY","side":"BUY","currency":"USD","counterparty":"Deutsche Bank","book":"TECH_GROWTH","break_category":"QUANTITY_MISMATCH","severity":"HIGH","materiality":"IMMATERIAL","age_days":75,"trade_notional_usd":2208000.0,"break_value_usd":1987200.0,"economic_risk_usd":0.0,"description":"Blotter 120000 shares at 18.40; broker 12000 at 184.00. Notional agrees at 2208000. Quantity ratio is exactly 10:1. Item has aged past the 60 day escalation threshold.","root_cause_category":"UNAPPLIED_CORPORATE_ACTION","ai_explanation":"Notional agrees exactly at $2,208,000 and the share ratio is precisely 10:1. NVIDIA executed a ten-for-one forward split (CA-005) with an ex-date of 2026-05-20, the day before this trade. The blotter is in pre-split terms and the broker confirm is post-split. No economic difference -- though the item has aged 75 days past detection, which is its own problem.","evidence":["Notional agrees exactly: 120,000 x 18.40 = 12,000 x 184.00 = $2,208,000","CA-005: NVDA 10:1 stock split, ex-date 2026-05-20; trade date 2026-05-21","Precedent HIST-002: same signature, same counterparty, resolved in 4 days"],"caveat":"The cause is clear but the age is not explained by it. A zero-risk break should not have stayed open for 75 days, and that gap is worth a look independently of this record.","confidence":"high","confidence_score":0.85,"ai_suggested_action":"AUTO_RESOLVE","ai_action_label":"Auto-resolve","urgency":"NEXT_BUSINESS_DAY","owner":"PORTFOLIO_ACCOUNTING","sla_hours":24,"escalate_to_human":false,"corporate_action":{"ca_id":"CA-005","action_type":"STOCK_SPLIT","ex_date":"2026-05-20","ratio_or_amount":"10:1","details":"Ten-for-one forward stock split. Trades booked on or after the ex-date must be expressed in post-split terms."},"comparison":[{"label":"Quantity","internal":"120,000","external":"12,000","match":false},{"label":"Price","internal":"18.4000","external":"184.0000","match":false},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true}]},{"break_id":"BRK-1017","first_detected":"2026-08-01","trade_date":"2026-08-01","settle_date":"2026-08-04","ticker":"UST-2029","security_name":"US Treasury 3.125% 30-Nov-2029","identifier":"US91282CJT8","asset_class":"GOVT_BOND","side":"BUY","currency":"USD","counterparty":"Wells Fargo","book":"RATES_RV","break_category":"ACCRUED_INTEREST","severity":"LOW","materiality":"IMMATERIAL","age_days":3,"trade_notional_usd":2958750.0,"break_value_usd":1150.0,"economic_risk_usd":1150.0,"description":"Clean price matches. Accrued interest differs by 1150.00 consistent with a two day difference in the accrual start date used by each side.","root_cause_category":"ACCRUAL_CONVENTION","ai_explanation":"Clean price and quantity match exactly. Accrued interest differs by $1,150 on $3mm face, consistent with a two day difference in the accrual start date. CA-009 records the last UST-2029 coupon paying 2026-06-15 with the next accrual period beginning 2026-06-01. One side is accruing from the payment date, the other from the period start. Convention difference, not a cash difference.","evidence":["Clean price 98.625 agrees exactly; difference confined to accrued interest","CA-009: UST-2029 coupon 1.5625, pay date 2026-06-15, accrual restarts 2026-06-01","$1,150 on $3mm face over two days matches the 3.125% coupon accrual rate"],"caveat":null,"confidence":"high","confidence_score":0.8,"ai_suggested_action":"AUTO_RESOLVE","ai_action_label":"Auto-resolve","urgency":"ROUTINE","owner":"PORTFOLIO_ACCOUNTING","sla_hours":120,"escalate_to_human":false,"corporate_action":{"ca_id":"CA-009","action_type":"COUPON_PAYMENT","ex_date":"","ratio_or_amount":"1.5625","details":"Semi-annual coupon of 1.5625 per 100 face. Next accrual period begins 2026-06-01."},"comparison":[{"label":"Quantity","internal":"3,000,000","external":"3,000,000","match":true},{"label":"Price","internal":"98.6250","external":"98.6250","match":true},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true},{"label":"Clean price","internal":"98.6250","external":"98.6250","match":true},{"label":"Accrued interest","internal":"24,062.50","external":"25,212.50","match":false}]},{"break_id":"BRK-1018","first_detected":"2026-08-03","trade_date":"2026-08-03","settle_date":"2026-08-05","ticker":"KO","security_name":"Coca-Cola Co","identifier":"191216100","asset_class":"EQUITY","side":"BUY","currency":"USD","counterparty":"HSBC","book":"US_LONG_SHORT","break_category":"MISSING_IN_BROKER","severity":"LOW","materiality":"MATERIAL","age_days":1,"trade_notional_usd":124000.0,"break_value_usd":124000.0,"economic_risk_usd":0.0,"description":"Blotter records a purchase of 2000 KO executed late in the session. No broker confirmation received. Detected on the same day as the trade.","root_cause_category":"TIMING_LAG","ai_explanation":"The blotter records a purchase of 2,000 KO executed late in the session. No HSBC confirmation has been received. The break was detected the same day as the trade, which is the ordinary pattern for a late fill: the confirm has not arrived yet. At one day old with $124,000 notional this is almost certainly timing rather than a real discrepancy.","evidence":["Detected same day as trade date -- no overnight confirm cycle has completed","Executed late in the session, after the counterparty's normal confirm cut-off","Smallest notional in the current queue at $124,000"],"caveat":"Timing is the likely explanation only while the break is young. If no confirmation arrives by the next cycle this becomes the same shape as BRK-1003, which has been open seven weeks.","confidence":"medium","confidence_score":0.71,"ai_suggested_action":"HOLD_MONITOR","ai_action_label":"Hold and monitor","urgency":"ROUTINE","owner":"OPS_SETTLEMENTS","sla_hours":120,"escalate_to_human":false,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"2,000","external":"0","match":false},{"label":"Price","internal":"62.0000","external":"--","match":false},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true}]},{"break_id":"BRK-1019","first_detected":"2026-07-20","trade_date":"2026-07-17","settle_date":"2026-07-21","ticker":"EEM","security_name":"iShares MSCI Emerging Markets ETF","identifier":"464287234","asset_class":"ETF","side":"BUY","currency":"USD","counterparty":"Standard Chartered","book":"EM_MACRO","break_category":"SSI_COUNTERPARTY","severity":"CRITICAL","materiality":"MATERIAL","age_days":15,"trade_notional_usd":561400.0,"break_value_usd":561400.0,"economic_risk_usd":561400.0,"description":"Economics match. Blotter settlement instructions point to the fund's primary custodian; broker is settling to a different account not on the approved SSI list for this counterparty.","root_cause_category":"STATIC_DATA_ERROR","ai_explanation":"Trade economics match exactly. The problem is settlement: the blotter points to the fund's primary custodian, and Standard Chartered is settling to a different account that is not on the approved SSI list for this counterparty. $561,400 is scheduled to move to an unapproved destination. The economics being correct is what makes this dangerous -- it will not fail any economic check on the way out.","evidence":["Quantity, price, side and settle date all agree exactly","Broker settlement account is not on the approved SSI list for this counterparty","Precedent HIST-008: same ticker and counterparty; settlement was blocked and the unapproved instruction replaced"],"caveat":null,"confidence":"high","confidence_score":0.82,"ai_suggested_action":"BLOCK_SETTLEMENT","ai_action_label":"Block settlement","urgency":"IMMEDIATE","owner":"OPS_SETTLEMENTS","sla_hours":1,"escalate_to_human":false,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"14,000","external":"14,000","match":true},{"label":"Price","internal":"40.1000","external":"40.1000","match":true},{"label":"Side","internal":"BUY","external":"BUY","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true},{"label":"Settlement account","internal":"Primary custodian (approved)","external":"Account not on approved SSI list","match":false}]},{"break_id":"BRK-1020","first_detected":"2026-07-04","trade_date":"2026-07-02","settle_date":"2026-07-07","ticker":"CVX","security_name":"Chevron Corp","identifier":"166764100","asset_class":"EQUITY","side":"SELL","currency":"USD","counterparty":"Barclays","book":"ENERGY","break_category":"CANCEL_REBOOK","severity":"HIGH","materiality":"MATERIAL","age_days":31,"trade_notional_usd":429800.0,"break_value_usd":429800.0,"economic_risk_usd":429800.0,"description":"Trade was cancelled and rebooked by the fund on trade date. Broker file still carries the original cancelled execution. The rebooked trade matched separately; this is the orphaned original leg.","root_cause_category":"CANCEL_REBOOK_ORPHAN","ai_explanation":"The fund cancelled and rebooked this trade on trade date. The rebooked leg matched separately and cleanly. The Barclays file still carries the original cancelled execution, which is what is showing here -- an orphaned leg, not a second trade. The cancellation never propagated to the broker's records.","evidence":["Blotter records a cancel and rebook on trade date 2026-07-02","The rebooked leg matched separately against a different broker record","Broker file still carries the original execution, uncancelled"],"caveat":"Confirming the cancel never reached Barclays needs their message log. If the cancel was sent and rejected, the cause is different and so is the fix.","confidence":"medium","confidence_score":0.73,"ai_suggested_action":"REQUEST_BROKER_CONFIRM","ai_action_label":"Request broker re-confirmation","urgency":"NEXT_BUSINESS_DAY","owner":"TRADE_SUPPORT","sla_hours":24,"escalate_to_human":false,"corporate_action":null,"comparison":[{"label":"Quantity","internal":"0","external":"2,800","match":false},{"label":"Price","internal":"--","external":"153.5000","match":false},{"label":"Side","internal":"SELL","external":"SELL","match":true},{"label":"Currency","internal":"USD","external":"USD","match":true},{"label":"Blotter status","internal":"Cancelled and rebooked","external":"Active","match":false},{"label":"Rebooked leg","internal":"Matched separately","external":"n/a","match":false}]}]}</script>
+<script>
+(function(){
+  "use strict";
+
+  var DATA    = JSON.parse(document.getElementById("break-data").textContent);
+  var BREAKS  = DATA.breaks;
+  var ACTIONS = DATA.actions;
+
+  // Decisions live in memory only. Reloading the page resets the demo, which is
+  // what you want when showing it repeatedly.
+  var decisions = {};   // break_id -> {verdict, action, note, at}
+  var log = [];
+  var view = { screen:"queue", id:null, sort:"risk", dir:-1, fType:"", fConf:"" };
+
+  // ---------- helpers ----------
+  function usd(n){
+    if(n === 0) return "$0";
+    if(n < 1000) return "$" + n.toFixed(2);
+    if(n < 1000000) return "$" + Math.round(n).toLocaleString("en-US");
+    return "$" + (n/1000000).toFixed(2) + "mm";
+  }
+  function esc(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function human(s){ return String(s).replace(/_/g," ").toLowerCase(); }
+  function titleish(s){
+    var t = human(s);
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  function clock(){
+    var d = new Date();
+    return String(d.getHours()).padStart(2,"0") + ":" +
+           String(d.getMinutes()).padStart(2,"0") + ":" +
+           String(d.getSeconds()).padStart(2,"0");
+  }
+  function get(id){ return BREAKS.filter(function(b){ return b.break_id === id; })[0]; }
+  function statusOf(id){
+    var d = decisions[id];
+    return d ? d.verdict : "pending";
+  }
+  function confBadge(c, short){
+    return '<span class="badge ' + c + '">' + c + (short ? "" : " confidence") + '</span>';
+  }
+
+  // ---------- stats ----------
+  function renderStats(){
+    var openIds = BREAKS.filter(function(b){ return !decisions[b.break_id]; });
+    var risk = openIds.reduce(function(a,b){ return a + b.economic_risk_usd; }, 0);
+    document.getElementById("s-open").textContent    = openIds.length;
+    document.getElementById("s-risk").textContent    = usd(risk);
+    document.getElementById("s-pending").textContent = openIds.length;
+    document.getElementById("s-done").textContent    = Object.keys(decisions).length;
+  }
+
+  // ---------- crumb ----------
+  function renderCrumb(){
+    var el = document.getElementById("crumb");
+    if(view.screen === "queue"){ el.innerHTML = '<span>Break queue</span>'; return; }
+    var b = get(view.id);
+    var parts = ['<button data-go="queue">Break queue</button><span class="sep">/</span>'];
+    if(view.screen === "detail"){
+      parts.push('<span>' + esc(b.break_id) + ' &mdash; investigation</span>');
+    } else {
+      parts.push('<button data-go="detail">' + esc(b.break_id) + ' &mdash; investigation</button>');
+      parts.push('<span class="sep">/</span><span>Decision</span>');
+    }
+    el.innerHTML = parts.join("");
+  }
+
+  // ---------- screen 1: queue ----------
+  var SORTS = {
+    id:   function(a,b){ return a.break_id.localeCompare(b.break_id); },
+    risk: function(a,b){ return a.economic_risk_usd - b.economic_risk_usd; },
+    age:  function(a,b){ return a.age_days - b.age_days; },
+    conf: function(a,b){ return a.confidence_score - b.confidence_score; }
+  };
+
+  function renderQueue(){
+    var types = {}, confs = {};
+    BREAKS.forEach(function(b){ types[b.break_category] = 1; confs[b.confidence] = 1; });
+
+    var rows = BREAKS.filter(function(b){
+      if(view.fType && b.break_category !== view.fType) return false;
+      if(view.fConf && b.confidence !== view.fConf) return false;
+      return true;
+    }).slice().sort(function(a,b){ return SORTS[view.sort](a,b) * view.dir; });
+
+    function arrow(k){ return view.sort === k ? '<span class="arrow">' + (view.dir === 1 ? "▲" : "▼") + '</span>' : ""; }
+
+    var opts = function(list, sel){
+      return list.map(function(v){
+        return '<option value="' + esc(v) + '"' + (sel === v ? " selected" : "") + '>' + esc(titleish(v)) + '</option>';
+      }).join("");
+    };
+
+    var html = '' +
+      '<div class="panel">' +
+        '<div class="panel-hd">' +
+          '<h2>Break queue</h2>' +
+          '<span class="sub">' + rows.length + ' of ' + BREAKS.length + ' breaks &middot; ranked by economic risk</span>' +
+          '<div class="filters">' +
+            '<label for="f-type">Break type</label>' +
+            '<select id="f-type"><option value="">All</option>' + opts(Object.keys(types).sort(), view.fType) + '</select>' +
+            '<label for="f-conf">Confidence</label>' +
+            '<select id="f-conf"><option value="">All</option>' + opts(["high","medium","low"], view.fConf) + '</select>' +
+          '</div>' +
+        '</div>' +
+        '<div class="tscroll"><table>' +
+          '<thead><tr>' +
+            '<th class="sortable" data-sort="id">Break ' + arrow("id") + '</th>' +
+            '<th>Security</th>' +
+            '<th>Counterparty</th>' +
+            '<th>Asset class</th>' +
+            '<th>Break type</th>' +
+            '<th class="r sortable" data-sort="age">Age ' + arrow("age") + '</th>' +
+            '<th class="r sortable" data-sort="risk">Economic risk ' + arrow("risk") + '</th>' +
+            '<th class="sortable" data-sort="conf">Confidence ' + arrow("conf") + '</th>' +
+            '<th>Status</th>' +
+          '</tr></thead><tbody>' +
+          rows.map(function(b){
+            var st = statusOf(b.break_id);
+            var stLabel = st === "pending" ? "Awaiting decision"
+                        : st === "approved" ? "Approved" : "Overridden";
+            return '<tr data-id="' + esc(b.break_id) + '">' +
+              '<td><span class="tid">' + esc(b.break_id) + '</span></td>' +
+              '<td><span class="tick">' + esc(b.ticker) + '</span>' +
+                  '<div class="sub">' + esc(b.security_name) + '</div></td>' +
+              '<td>' + esc(b.counterparty) + '</td>' +
+              '<td><span class="cat">' + esc(b.asset_class) + '</span></td>' +
+              '<td><span class="cat">' + esc(b.break_category) + '</span>' +
+                  '<div class="sub sev ' + esc(b.severity) + '">' + esc(b.severity) + '</div></td>' +
+              '<td class="r num">' + b.age_days + 'd</td>' +
+              '<td class="r num">' + usd(b.economic_risk_usd) + '</td>' +
+              '<td>' + confBadge(b.confidence, true) + '</td>' +
+              '<td><span class="status-chip ' + st + '"><span class="dot"></span>' + stLabel + '</span></td>' +
+            '</tr>';
+          }).join("") +
+        '</tbody></table></div>' +
+      '</div>';
+
+    document.getElementById("screen-queue").innerHTML = html;
+  }
+
+  // ---------- screen 2: detail ----------
+  function renderDetail(){
+    var b = get(view.id);
+    function sideTable(which){
+      return '<table class="cmp">' + b.comparison.map(function(r){
+        return '<tr class="' + (r.match ? "" : "mismatch") + '">' +
+          '<td class="lbl">' + esc(r.label) + '</td>' +
+          '<td class="val">' + esc(r[which]) + '</td></tr>';
+      }).join("") + '</table>';
+    }
+
+    var ca = b.corporate_action;
+    var st = statusOf(b.break_id);
+
+    var html = '' +
+    '<div class="panel">' +
+      '<div class="detail-hd">' +
+        '<div class="detail-title">' +
+          '<span class="id">' + esc(b.break_id) + '</span>' +
+          '<h1>' + esc(b.ticker) + ' &mdash; ' + esc(b.security_name) + '</h1>' +
+          '<span class="isin">' + esc(b.identifier) + '</span>' +
+        '</div>' +
+        '<div class="facts">' +
+          '<div class="fact"><div class="k">Counterparty</div><div class="v">' + esc(b.counterparty) + '</div></div>' +
+          '<div class="fact"><div class="k">Asset class</div><div class="v">' + esc(b.asset_class) + '</div></div>' +
+          '<div class="fact"><div class="k">Break type</div><div class="v">' + esc(b.break_category) + '</div></div>' +
+          '<div class="fact"><div class="k">Severity</div><div class="v sev ' + esc(b.severity) + '">' + esc(b.severity) + '</div></div>' +
+          '<div class="fact"><div class="k">Trade date</div><div class="v mono">' + esc(b.trade_date) + '</div></div>' +
+          '<div class="fact"><div class="k">Age</div><div class="v mono">' + b.age_days + ' days</div></div>' +
+          '<div class="fact"><div class="k">Notional</div><div class="v mono">' + usd(b.trade_notional_usd) + '</div></div>' +
+          '<div class="fact"><div class="k">Economic risk</div><div class="v mono">' + usd(b.economic_risk_usd) + '</div></div>' +
+          '<div class="fact"><div class="k">Book</div><div class="v">' + esc(b.book) + '</div></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="split">' +
+        '<div class="side"><h3>Internal record</h3>' +
+          '<div class="src">Fund blotter &middot; ' + esc(b.book) + '</div>' + sideTable("internal") + '</div>' +
+        '<div class="side"><h3>External record</h3>' +
+          '<div class="src">Broker confirmation &middot; ' + esc(b.counterparty) + '</div>' + sideTable("external") + '</div>' +
+      '</div>' +
+
+      '<div class="reason">' +
+        '<h3>Likely root cause</h3>' +
+        '<div class="byline">Investigation agent &middot; classified as ' + esc(b.root_cause_category) + '</div>' +
+        '<p class="prose">' + esc(b.ai_explanation) + '</p>' +
+
+        '<div class="ev-hd">Evidence considered</div>' +
+        '<ul class="evidence">' + b.evidence.map(function(e){ return '<li>' + esc(e) + '</li>'; }).join("") + '</ul>' +
+
+        (ca ? '<div class="ca-ref"><div class="h">Corporate action referenced &mdash; ' + esc(ca.ca_id) + '</div>' +
+              '<p><b>' + esc(titleish(ca.action_type)) + '</b>' +
+              (ca.ratio_or_amount ? ' &middot; ' + esc(ca.ratio_or_amount) : "") +
+              (ca.ex_date ? ' &middot; ex-date ' + esc(ca.ex_date) : "") +
+              '<br>' + esc(ca.details) + '</p></div>' : "") +
+
+        (b.caveat ? '<div class="caveat"><div class="h">What the model is not sure about</div>' +
+                    '<p>' + esc(b.caveat) + '</p></div>' : "") +
+      '</div>' +
+
+      '<div class="proposal">' +
+        '<div class="h">AI-suggested action</div>' +
+        '<div class="action">' + esc(b.ai_action_label) + '</div>' +
+        '<div class="meta">' + confBadge(b.confidence) +
+          '<span class="sub num">score ' + b.confidence_score.toFixed(2) + '</span>' +
+          '<span class="sub">&middot; routed to ' + esc(b.owner) + '</span>' +
+          '<span class="sub">&middot; ' + esc(titleish(b.urgency)) + ', ' + b.sla_hours + 'h SLA</span>' +
+        '</div>' +
+        '<div class="not-exec">Proposed only. Nothing has been executed or recorded.</div>' +
+      '</div>' +
+
+      '<div class="actions-row">' +
+        (st === "pending"
+          ? '<button class="btn primary" data-go="decision">Review and decide &rarr;</button>'
+          : '<button class="btn primary" data-go="decision">View decision</button>') +
+        '<button class="btn" data-go="queue">Back to queue</button>' +
+      '</div>' +
+    '</div>';
+
+    document.getElementById("screen-detail").innerHTML = html;
+  }
+
+  // ---------- screen 3: decision ----------
+  function renderDecision(){
+    var b = get(view.id);
+    var d = decisions[b.break_id];
+
+    var modelCol =
+      '<div class="col"><h4>Model proposal</h4>' +
+        '<div class="prov">Classifier and investigator agents</div>' +
+        '<div class="kv"><span class="k">Break category</span><span class="v mono">' + esc(b.break_category) + '</span></div>' +
+        '<div class="kv"><span class="k">Root cause</span><span class="v mono">' + esc(b.root_cause_category) + '</span></div>' +
+        '<div class="kv"><span class="k">Severity</span><span class="v">' + esc(b.severity) + '</span></div>' +
+        '<div class="kv"><span class="k">Suggested action</span><span class="v">' + esc(b.ai_action_label) + '</span></div>' +
+        '<div class="kv"><span class="k">Confidence</span><span class="v">' + esc(b.confidence) + ' (' + b.confidence_score.toFixed(2) + ')</span></div>' +
+      '</div>';
+
+    var policyCol =
+      '<div class="col"><h4>Policy layer</h4>' +
+        '<div class="prov">Applied by deterministic code, not the model</div>' +
+        '<div class="kv"><span class="k">Owner</span><span class="v mono">' + esc(b.owner) + '</span></div>' +
+        '<div class="kv"><span class="k">Urgency</span><span class="v mono">' + esc(b.urgency) + '</span></div>' +
+        '<div class="kv"><span class="k">SLA</span><span class="v mono">' + b.sla_hours + ' hours</span></div>' +
+        '<div class="kv"><span class="k">Materiality</span><span class="v">' + esc(b.materiality) + '</span></div>' +
+        '<div class="kv"><span class="k">Human review forced</span><span class="v">' + (b.escalate_to_human ? "Yes" : "No") + '</span></div>' +
+      '</div>';
+
+    var body;
+    if(d){
+      var overridden = d.verdict === "overridden";
+      body =
+        '<div class="two-col">' + modelCol + policyCol + '</div>' +
+        '<div class="confirmed' + (overridden ? " ovr" : "") + '">' +
+          '<div class="h">' + (overridden ? "Overridden by human" : "Approved by human") + '</div>' +
+          '<div class="what">' + esc(ACTIONS[d.action]) + '</div>' +
+          '<div class="meta">' +
+            (overridden
+              ? 'The model proposed <b>' + esc(b.ai_action_label) + '</b> at ' + esc(b.confidence) +
+                ' confidence. A human selected a different resolution.'
+              : 'The model proposed <b>' + esc(b.ai_action_label) + '</b> at ' + esc(b.confidence) +
+                ' confidence. A human reviewed the evidence and approved it.') +
+            '<br>Recorded at ' + esc(d.at) + ' by Ops Analyst (demo user). Written to the activity log.' +
+          '</div>' +
+          (d.note ? '<div class="note">Reason given: &ldquo;' + esc(d.note) + '&rdquo;</div>' : "") +
+        '</div>' +
+        '<div class="actions-row" style="padding:18px 0 0">' +
+          '<button class="btn" data-go="queue">Back to queue</button>' +
+          '<button class="btn" data-reopen="1">Reopen decision</button>' +
+        '</div>';
+    } else {
+      var others = Object.keys(ACTIONS).filter(function(k){ return k !== b.ai_suggested_action; });
+      body =
+        '<div class="two-col">' + modelCol + policyCol + '</div>' +
+
+        '<div class="gate-q">' +
+          '<div class="q">Proposed resolution: ' + esc(b.ai_action_label) + '</div>' +
+          '<div class="a">' +
+            (b.caveat
+              ? esc(b.caveat)
+              : 'The evidence above supports this resolution. Approving records it against ' +
+                esc(b.break_id) + ' and assigns it to ' + esc(b.owner) + '.') +
+          '</div>' +
+        '</div>' +
+
+        '<div class="decide">' +
+          '<button class="btn approve" data-approve="1">Approve proposed action</button>' +
+          '<button class="btn override" data-toggle-override="1">Override &mdash; choose a different action</button>' +
+          '<span class="hint">Nothing is recorded until you choose.</span>' +
+        '</div>' +
+
+        '<div class="override-box hidden" id="ovr">' +
+          '<h4>Select the resolution to record instead</h4>' +
+          '<div class="opts">' +
+            others.map(function(k,i){
+              return '<label class="opt"><input type="radio" name="ovr-action" value="' + esc(k) + '"' +
+                (i === 0 ? " checked" : "") + '><span>' + esc(ACTIONS[k]) + '</span></label>';
+            }).join("") +
+          '</div>' +
+          '<textarea id="ovr-note" placeholder="Why are you overriding? (optional &mdash; recorded in the activity log)"></textarea>' +
+          '<div class="actions-row" style="padding:14px 0 0">' +
+            '<button class="btn primary" data-commit-override="1">Record override</button>' +
+            '<button class="btn" data-toggle-override="1">Cancel</button>' +
+          '</div>' +
+        '</div>';
+    }
+
+    var html =
+      '<div class="gate">' +
+        '<div class="gate-hd">' +
+          '<span class="lbl">' + (d ? "Decision recorded" : "Human decision required") + '</span>' +
+          '<span class="badge neutral">' + esc(b.break_id) + '</span>' +
+          confBadge(b.confidence) +
+          '<span class="who">' + (d ? "Decided by Ops Analyst" : "Assigned to Ops Analyst (you)") + '</span>' +
+        '</div>' +
+        '<div class="gate-bd">' + body + '</div>' +
+      '</div>';
+
+    document.getElementById("screen-decision").innerHTML = html;
+  }
+
+  // ---------- log ----------
+  function renderLog(){
+    var el = document.getElementById("log-body");
+    document.getElementById("log-count").textContent =
+      log.length + (log.length === 1 ? " decision" : " decisions");
+
+    if(!log.length){
+      el.innerHTML = '<div class="log-empty">No decisions recorded. Every resolution below is ' +
+        'written here at the moment a human approves or overrides it &mdash; nothing reaches ' +
+        'this log without one.</div>';
+      return;
+    }
+    el.innerHTML = log.map(function(e){
+      var det = e.verdict === "approved"
+        ? 'Approved the model&rsquo;s proposal: <b>' + esc(ACTIONS[e.action]) + '</b>'
+        : 'Recorded <b>' + esc(ACTIONS[e.action]) + '</b> in place of the model&rsquo;s proposal ' +
+          '<s>' + esc(ACTIONS[e.proposed]) + '</s>';
+      return '<div class="entry">' +
+        '<span class="ts">' + esc(e.at) + '</span>' +
+        '<span class="body">' +
+          '<span class="line1">' +
+            '<span class="bid">' + esc(e.break_id) + '</span>' +
+            '<span class="verb ' + e.verdict + '">' + (e.verdict === "approved" ? "Approved" : "Overridden") + '</span>' +
+            '<span class="badge ' + e.confidence + '">' + e.confidence + ' confidence</span>' +
+          '</span>' +
+          '<span class="det">' + det + '</span>' +
+          '<span class="actor">Ops Analyst (demo user) &middot; ' + esc(e.ticker) + ' &middot; ' +
+            esc(e.counterparty) + ' &middot; ' + usd(e.risk) + ' economic risk</span>' +
+        '</span>' +
+      '</div>';
+    }).join("");
+  }
+
+  // ---------- state transitions ----------
+  function decide(id, verdict, action, note){
+    var b = get(id);
+    var at = clock();
+    decisions[id] = { verdict:verdict, action:action, note:note || "", at:at };
+    log.unshift({
+      at:at, break_id:id, verdict:verdict, action:action,
+      proposed:b.ai_suggested_action, confidence:b.confidence,
+      ticker:b.ticker, counterparty:b.counterparty, risk:b.economic_risk_usd
+    });
+    render();
+  }
+
+  function go(screen, id){
+    view.screen = screen;
+    if(id) view.id = id;
+    window.scrollTo({ top:0, behavior:"smooth" });
+    render();
+  }
+
+  function render(){
+    ["queue","detail","decision"].forEach(function(s){
+      document.getElementById("screen-" + s).classList.toggle("hidden", view.screen !== s);
+    });
+    renderStats();
+    renderCrumb();
+    if(view.screen === "queue")    renderQueue();
+    if(view.screen === "detail")   renderDetail();
+    if(view.screen === "decision") renderDecision();
+    renderLog();
+  }
+
+  // ---------- events ----------
+  document.addEventListener("click", function(ev){
+    var t = ev.target;
+
+    var goEl = t.closest("[data-go]");
+    if(goEl){ go(goEl.getAttribute("data-go")); return; }
+
+    var th = t.closest("th.sortable");
+    if(th){
+      var k = th.getAttribute("data-sort");
+      if(view.sort === k) view.dir = -view.dir; else { view.sort = k; view.dir = -1; }
+      renderQueue(); return;
+    }
+
+    var row = t.closest("tbody tr[data-id]");
+    if(row){ go("detail", row.getAttribute("data-id")); return; }
+
+    if(t.closest("[data-approve]")){
+      var b = get(view.id);
+      decide(view.id, "approved", b.ai_suggested_action, "");
+      return;
+    }
+
+    if(t.closest("[data-toggle-override]")){
+      document.getElementById("ovr").classList.toggle("hidden");
+      return;
+    }
+
+    if(t.closest("[data-commit-override]")){
+      var sel = document.querySelector('input[name="ovr-action"]:checked');
+      var note = document.getElementById("ovr-note").value.trim();
+      if(sel) decide(view.id, "overridden", sel.value, note);
+      return;
+    }
+
+    if(t.closest("[data-reopen]")){
+      var id = view.id;
+      delete decisions[id];
+      log = log.filter(function(e){ return e.break_id !== id; });
+      render();
+      return;
+    }
+  });
+
+  document.addEventListener("change", function(ev){
+    if(ev.target.id === "f-type"){ view.fType = ev.target.value; renderQueue(); }
+    if(ev.target.id === "f-conf"){ view.fConf = ev.target.value; renderQueue(); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
