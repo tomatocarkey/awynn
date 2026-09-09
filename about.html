@@ -3,75 +3,82 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>About &mdash; Awynn</title>
-<meta name="description" content="Awynn LLC was founded by Aaliyah, who studied information science at UNC Chapel Hill and worked in technology consulting.">
+<title>About &mdash; Wadent</title>
+<meta name="description" content="Wadent is an early-stage company exploring how regulated financial-services teams can use AI in sensitive workflows without giving up control or accountability.">
 <meta name="robots" content="noindex, nofollow">
-<meta property="og:title" content="About &mdash; Awynn">
-<meta property="og:description" content="Who is building Awynn.">
-<meta property="og:type" content="profile">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231b2434'/><text x='16' y='22' font-family='Helvetica,Arial,sans-serif' font-size='17' font-weight='600' fill='%23f7f6f3' text-anchor='middle'>A</text></svg>">
+<meta property="og:title" content="About &mdash; Wadent">
+<meta property="og:description" content="An early-stage company exploring control and accountability around AI in regulated workflows.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231b2434'/><text x='16' y='22' font-family='Helvetica,Arial,sans-serif' font-size='16' font-weight='600' fill='%23f7f6f3' text-anchor='middle'>W</text></svg>">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="page">
+  <div class="page page--wide">
     <header class="masthead">
-      <a class="wordmark" href="./">Awynn</a>
-      <nav class="nav"><a href="overview.html">Overview</a> <span class="nav-current" aria-current="page">About</span></nav>
+      <a class="wordmark" href="./">Wadent</a>
+      <nav class="nav">
+        <a href="./#how-it-works">How it works</a>
+        <a href="research.html">Research</a>
+        <span class="nav-current" aria-current="page">About</span>
+        <a href="./#contact">Contact</a>
+      </nav>
     </header>
 
-    <main class="content content--doc">
-      <p class="eyebrow">Founder</p>
+    <main>
+      <section class="section section--hero">
+        <p class="eyebrow">About</p>
+        <h1 class="display display--sm">The work around AI.</h1>
 
-      <h1 class="page-title">Aaliyah</h1>
+        <div class="prose prose--wide">
+          <p>Wadent is an early-stage company exploring how regulated financial-services teams
+          can use AI in sensitive workflows without giving up control, accountability, or the
+          ability to explain what happened.</p>
 
-      <div class="prose">
-        <p>Aaliyah founded Awynn LLC. She studied information science at the
-        University of North Carolina at Chapel Hill and spent the early part of her
-        career in technology consulting.</p>
+          <p>We are focused on the work around AI: human review, operational exceptions,
+          evidence, controlled access, and practical deployment choices.</p>
 
-        <p>The consulting work is where the company started. Moving between client
-        systems, she kept meeting the same situation: financial operations running on
-        legacy infrastructure, and organizations that knew it was costing them
-        without a clear sense of where to begin. To understand one corner of it
-        properly &mdash; hedge fund operations &mdash; she built a triage tool for
-        trade reconciliation breaks, working through how a trade support desk decides
-        what a break is, why it happened, and what is genuinely at risk.</p>
+          <p>We believe AI should make teams more capable&mdash;not make responsibility
+          disappear.</p>
+        </div>
+      </section>
 
-        <p>The tool answered the small question and raised a larger one. What had
-        looked like a scatter of isolated frustrations turned out to be structural.
-        She began talking with people working in finance to test that read against
-        their day-to-day, and is now working alongside a student researcher to build
-        the domain depth the problem asks for.</p>
+      <section class="section">
+        <p class="section-label">Founder</p>
+        <div class="split">
+          <h2 class="heading">Aaliyah</h2>
+          <div class="prose">
+            <p>Aaliyah founded Awynn LLC, which builds Wadent. She studied information science at
+            the University of North Carolina at Chapel Hill and spent the early part of her career
+            in technology consulting.</p>
 
-        <p>Awynn LLC is early, and deliberately quiet about specifics. The problem is
-        not a quiet one.</p>
-      </div>
+            <p>The consulting work is where the questions started. Moving between client systems,
+            she kept meeting the same situation: operations running on legacy infrastructure, and
+            organizations that knew it was costing them without a clear sense of where to begin.
+            To understand one corner of it properly, she built a working prototype that walks
+            through reconciliation exceptions and the reasoning behind each one.</p>
 
-      <p class="aside">Prototype:
-        <a href="https://github.com/tomatocarkey/trade-break-triage">github.com/tomatocarkey/trade-break-triage</a>
-      </p>
+            <p>She is now talking with people working in finance and operations to test that read
+            against their day-to-day, and working alongside a student researcher to build the
+            domain depth the problem asks for.</p>
 
-      <p class="contact">
-        <a class="mail" data-user="awynn0324" data-domain="gmail.com">awynn0324 [at] gmail.com</a>
-      </p>
+            <p class="cta-line"><a class="cta" href="research.html">See the research demonstration <span aria-hidden="true">&rarr;</span></a></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--notes">
+        <p class="prose-single">Wadent is in customer discovery. It is a hypothesis under active
+        testing rather than a deployed product, and interfaces shown on this site are
+        illustrative.</p>
+      </section>
     </main>
 
     <footer class="footer">
       <p class="footer-legal">&copy; 2026 Awynn LLC</p>
-      <p class="footer-meta">Registered in the State of New York</p>
+      <p class="footer-meta">Registered in the State of New York &middot; Wadent is a product of Awynn LLC</p>
     </footer>
   </div>
 
-  <script>
-    // Assemble the address at runtime so plain-text harvesters find nothing to
-    // match. Without JS the anchor stays inert and shows a readable fallback.
-    (function () {
-      var el = document.querySelector('.mail');
-      if (!el) return;
-      var address = el.dataset.user + String.fromCharCode(64) + el.dataset.domain;
-      el.href = 'mail' + 'to:' + address;
-      el.textContent = address;
-    })();
-  </script>
+  <script src="site.js"></script>
 </body>
 </html>
